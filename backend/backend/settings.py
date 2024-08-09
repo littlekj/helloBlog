@@ -57,7 +57,6 @@ CSRF_COOKIE_SECURE = True
 # 点击劫持保护
 X_FRAME_OPTIONS = 'DENY'
 
-
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = False
 
