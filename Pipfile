@@ -1,0 +1,17 @@
+[[source]]
+url = "https://pypi.org/simple"
+verify_ssl = true
+name = "pypi"
+
+[packages]
+django = "*"
+markdown = "*"
+mdit-py-plugins = "*"
+markdown-it-py = {extras = ["linkify", "plugins"], version = "*"}
+pypandoc = "*"
+beautifulsoup4 = "*"
+
+[dev-packages]
+
+[requires]
+python_version = "3.9"
