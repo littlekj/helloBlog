@@ -1,0 +1,67 @@
+/* 侧边栏目录 */
+.toc {
+    font-family: Arial, sans-serif;
+    font-size: 14px;
+}
+.toc ul {
+    list-style-type: none; /* 去掉默认的列表标记 */
+    padding-left: 0;      /* 去掉内边距 */
+    margin-left: 0;       /* 去掉外边距 */
+}
+.toc li {
+    margin: 0;            /* 去掉外边距 */
+}
+.toc a {
+    text-decoration: none; /* 去掉链接下划线 */
+    color: #333;           /* 设置链接颜色 */
+}
+.toc ul ul {
+    margin-left: 15px;     /* 调整内层列表的左边距 */
+    padding-left: 0;      /* 去掉内层列表的内边距 */
+}
+.toc li ul li {
+    margin: 5px 0;         /* 设置列表项的上下外边距 */
+}
+
+
+/* 表格样式 */
+table {
+    width: auto;
+    border-collapse: collapse;
+    margin: 1em 0;
+}
+
+table, th, td {
+    border: 1px solid #ddd;
+}
+
+th, td {
+    padding: 4px;
+    text-align: left;
+}
+
+th {
+    background-color: #f2f2f2;
+}
+
+
+   /* 确保代码块样式不受影响 */
+<!--        <style>-->
+<!--            pre, code {-->
+<!--                background-color: #F6F8FA; /* 适合的颜色 */-->
+<!--                border: none;-->
+<!--                padding: 8px;-->
+<!--                border-radius: 4px;-->
+<!--            }-->
+<!--            -->
+<!--            /* 特定于代码块内表格的样式 */-->
+<!--            pre table {-->
+<!--                border: none; /* 取消代码块内表格的边框 */-->
+<!--            }-->
+
+<!--            /* 更高优先级的代码块样式 */-->
+<!--            pre code {-->
+<!--                color: #333; /* 示例代码块颜色 */-->
+<!--            }-->
+<!--        </style>-->
+
