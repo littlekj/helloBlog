@@ -1,2 +1,2 @@
 .env
-db.sqlite3
+database/db.sqlite3

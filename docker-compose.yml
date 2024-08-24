@@ -1,0 +1,45 @@
+services:
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: django_app:latest
+    container_name: django_app
+    environment:
+      - PYTHONDONTWRITEBYTECODE=1
+      - PIP_INDEX_URL=https://mirrors.aliyun.com/pypi/simple/
+      - PROJECT_PATH=/usr/local/share/helloBlog
+    volumes:
+      #- .:/usr/local/share/helloBlog
+      - ./backend/database:/usr/local/share/helloBlog/backend/database
+      - ./backend/static:/usr/local/share/helloBlog/backend/static
+    #command: ['sh', '-c', '/usr/local/share/helloBlog/init.sh']
+    #healthcheck:
+    #  test: ["CMD", "curl", "-f", "http://localhost:8000"]
+    #  interval: 30s
+    #  timeout: 10s
+    #  retries: 5
+
+  nginx:
+    build:
+      context: .
+      dockerfile: Dockerfile.nginx
+    image: nginx_server
+    container_name: nginx_server
+    environment:
+      - PROJECT_PATH=/usr/local/share/helloBlog
+    volumes:
+      #- .:/usr/local/share/helloBlog
+      - ./backend/database:/usr/local/share/helloBlog/backend/database  # 数据库挂载映射
+      - ./backend/static:/usr/local/share/helloBlog/backend/static  # 静态文件挂载映射
+      - ./backend/conf/cert:/etc/nginx/certs  # 在宿主机上生成的证书挂载到容器中
+    ports:
+      - "80:80"  # 暴露 HTTP 端口
+      - "443:443"  # 暴露 HTTPS 端口
+    depends_on:
+      - web
+    #command: ['nginx', '-g', 'daemon off;']
+
+networks:
+  default:
+    name: my_network

@@ -1,0 +1,25 @@
+# 使用官方的 Nginx 作为基础镜像
+FROM nginx:1.20.1
+
+# 指定维护者信息
+LABEL maintainer="quill"
+
+# 设置工作目录
+ENV PROJECT_PATH=/usr/local/share/helloBlog
+WORKDIR ${PROJECT_PATH}
+
+# 复制自定义的 Nginx 配置文件到容器中
+COPY backend/conf/nginx.conf.docker  /etc/nginx/nginx.conf
+
+# 创建必要的目录
+COPY backend/conf/cert  ${PROJECT_PATH}/backend/conf/cert
+#COPY backend/static  ${PROJECT_PATH}/backend/static
+#RUN mkdir -p ${PROJECT_PATH}/backend/static
+
+RUN mkdir -p ${PROJECT_PATH}/backend/logs/nginx
+
+# 暴露 Nginx 默认的 HTTP 端口
+EXPOSE 80 443
+
+# 启动 Nginx 并保持运行状态
+CMD ["nginx", "-g", "daemon off;"]

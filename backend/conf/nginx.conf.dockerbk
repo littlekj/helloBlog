@@ -1,0 +1,119 @@
+# 配置用户
+user nginx;
+
+# 工作进程数(建议跟CPU的核数量一致)
+worker_processes auto;
+
+# 错误日志
+error_log /var/log/nginx/error.log;
+
+# 进程文件
+pid /run/nginx.pid;
+
+# 包含其他的配置
+include /usr/share/nginx/modules/*.conf;
+
+# 工作模式(多路IO复用方式)和连接上限
+events {
+    use epoll;  # `epoll` 是一种 I/O 事件通知机制，提供处理高并发请求的效率
+    worker_connections 1024;
+}
+
+# HTTP服务器相关配置
+http {
+    # 日志格式
+    log_format  main  '$remote_addr - $remote_user [$time_local] "$request" '
+                      '$status $body_bytes_sent "$http_referer" '
+                      '"$http_user_agent" "$http_x_forwarded_for"';
+
+    # 访问日志
+    access_log  /var/log/nginx/access.log  main;
+
+    # 开启高效文件传输模式
+    sendfile            on;
+
+    # 用sendfile传输文件时有利于改善性能
+    tcp_nopush          on;
+
+    # 禁用Nagle来解决交互性问题
+    tcp_nodelay         on;
+
+    # 客户端保持连接时间
+    keepalive_timeout   65;
+
+    # MIME类型配置的最大哈希大小
+    types_hash_max_size 4096;
+
+    # 包含MIME类型的配置
+    include             /etc/nginx/mime.types;
+
+    # 默认使用二进制流格式
+    default_type        application/octet-stream;
+
+    # 包含其他配置文件
+    include /etc/nginx/conf.d/*.conf;
+
+    # 包含项目的Nginx配置文件
+    #include /usr/local/share/helloBlog/backend/conf/*.conf;
+    
+    upstream django {
+	server django_app:8000;  # 容器名称和端口
+    }
+
+    # HTTP 服务器配置
+	server {
+	    listen      0.0.0.0:80;
+	    server_name 101.34.211.137 zone.ink-quill.com;  # 指定处理请求的域名或 IP 地址，建议使用域名
+
+	    # 日志文件配置
+	    access_log /usr/local/share/helloBlog/backend/logs/access.log;
+	    error_log /usr/local/share/helloBlog/backend/logs/error.log;
+
+	    # 处理主页面请求
+	    location / {# 匹配所有请求路径
+		include uwsgi_params;
+		uwsgi_pass django;  # 使用 upstream 配置
+	    }
+
+	    # 处理静态文件请求
+	    location /static/ {
+		alias /usr/local/share/helloBlog/backend/static/;  # 静态文件存储路径
+		expires 30d;  # 缓存静态文件 30 天
+	    }
+	}
+
+		# 将 HTTP 请求重定向到 HTTPS
+		#location / {
+		#	return 301 https://$host$request_uri;
+		#}
+
+	# HTTPS 服务器配置
+	server {
+	    listen      443 ssl http2; # 在 HTTPS 中启用 HTTP/2，以提高性能
+	    server_name 101.34.211.137 zone.ink-quill.com;  # 指定处理请求的域名或 IP 地址
+
+	    # SSL 配置
+	    ssl_certificate     /usr/local/share/helloBlog/backend/conf/cert/cert.pem;
+	    ssl_certificate_key /usr/local/share/helloBlog/backend/conf/cert/key.pem;
+	    ssl_session_timeout 5m;
+	    ssl_protocols TLSv1.2 TLSv1.3;
+	    ssl_ciphers 'ECDHE-RSA-AES128-GCM-SHA256:ECDHE-RSA-AES256-GCM-SHA384:ECDHE-RSA-AES128-SHA256:ECDHE-RSA-AES256-SHA384';
+	    ssl_prefer_server_ciphers on;
+
+	    # 日志文件配置
+	    access_log /usr/local/share/helloBlog/backend/logs/access.log;
+	    error_log /usr/local/share/helloBlog/backend/logs/error.log;
+
+	    # 处理所有路径的请求
+	    location / {
+		include uwsgi_params;  # 包含与 uWSGI 服务器通信所需的标准参数
+		uwsgi_pass django;  # uWSGI socket 地址
+	    }
+
+	    # 处理静态文件请求
+	    location /static/ {
+		alias /usr/local/share/helloBlog/backend/static/;  # 静态文件存储路径
+		expires 30d;  # 缓存静态文件 30 天
+	    }
+	}
+}
