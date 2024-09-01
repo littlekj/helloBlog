@@ -121,3 +121,39 @@ def generate_summary(html, max_length=200):
 
     return summary_text
 
+
+from django.utils.html import strip_tags
+from haystack.utils import Highlighter
+
+
+class CustomHighlighter(Highlighter):
+    """
+    自定义关键词高亮器类，扩展 Haystack 的 Highlighter。
+    这个高亮器不对过短的文本（如标题）进行截断。
+    """
+
+    def highlight(self, text_block):
+        """
+        高亮显示关键词，避免对过短的文本进行截断。
+
+        参数:
+        text_block (str): 要高亮显示的文本块。
+
+        返回:
+        str: 包含高亮标记的 HTML 文本。
+        """
+        # 去除 HTML 标签
+        self.text_block = strip_tags(text_block)
+
+        # 查找需要高亮的关键词位置
+        highlight_locations = self.find_highlightable_words()
+
+        # 查找高亮窗口的起始和结束位置
+        start_offset, end_offset = self.find_window(highlight_locations)
+
+        # 如果文本块长度小于最大长度，则不进行截断
+        if len(text_block) < self.max_length:
+            start_offset = 0
+
+        # 渲染高亮显示的 HTML
+        return self.render_html(highlight_locations, start_offset, end_offset)

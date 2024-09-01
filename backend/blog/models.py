@@ -2,8 +2,6 @@ from django.db import models
 from django.contrib.auth.models import User
 from django.utils import timezone
 from django.urls import reverse
-import markdown
-from django.utils.html import strip_tags
 
 from markdown_it import MarkdownIt
 from blog.utils import generate_summary
@@ -14,6 +12,7 @@ from blog.utils import generate_summary
 class Category(models.Model):
     """创建文章分类模型类"""
     name = models.CharField(max_length=100, unique=True)
+
     # slug = models.SlugField(max_length=100, unique=True)
 
     class Meta:
@@ -67,6 +66,9 @@ class Post(models.Model):
     # 文章作者，这里 User 是从 django.contrib.auth.models 导入的
     author = models.ForeignKey(User, verbose_name='作者', on_delete=models.CASCADE)
 
+    # 新增 views 字段，用于存储文章浏览量
+    views = models.PositiveIntegerField(default=0, editable=False)
+
     class Meta:
         verbose_name = '文章'
         verbose_name_plural = verbose_name
@@ -100,3 +102,8 @@ class Post(models.Model):
         # 根据视图名称和参数反向生成 URL
         # blog:detail 是在 urls.py 中定义的视图名称，self.pk 是当前对象的 id 值（主键）
         return reverse('blog:detail', kwargs={'pk': self.pk})
+
+    # 增加 views 字段的自增方法
+    def increase_views(self):
+        self.views += 1
+        self.save(update_fields=['views'])

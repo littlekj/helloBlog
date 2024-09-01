@@ -5,14 +5,16 @@ name = "pypi"
 
 [packages]
 django = "*"
-markdown = "*"
 mdit-py-plugins = "*"
 markdown-it-py = {extras = ["linkify", "plugins"], version = "*"}
 pypandoc = "*"
 beautifulsoup4 = "*"
 python-dotenv = "*"
-uwsgi = "*"
-supervisor = "*"
+#uwsgi = "*"
+#supervisor = "*"
+faker = "*"
+django-haystack = "*"
+elasticsearch = "<8,>=7"
 
 [dev-packages]
 

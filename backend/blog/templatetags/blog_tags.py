@@ -3,6 +3,8 @@ from blog.models import Post, Category, Tag
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from django.core.cache import cache
 
+from django.db.models.aggregates import Count
+
 # 创建一个模板库实例
 register = template.Library()
 
@@ -80,7 +82,8 @@ def show_categories(context):
     """
 
     # 查询所有分类信息，按名称排序
-    category_list = Category.objects.all().order_by('name')
+    # category_list = Category.objects.all().order_by('name')
+    category_list = Category.objects.annotate(num_posts=Count('post')).filter(num_posts__gt=0).order_by('-num_posts')
 
     return {
         'category_list': category_list
@@ -95,7 +98,8 @@ def show_tags(context):
     """
 
     # 查询所有标签信息，按名称排序
-    tag_list = Tag.objects.all().order_by('name')
+    # tag_list = Tag.objects.all().order_by('name')
+    tag_list =Tag.objects.annotate(num_posts=Count('post')).filter(num_posts__gt=0).order_by('-num_posts')
 
     return {
         'tag_list': tag_list
