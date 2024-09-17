@@ -1,0 +1,75 @@
+{% load static %}
+{% load page_tags %}
+
+<!-- 侧边栏 -->
+<aside aria-label="Sidebar" id="sidebar" class="d-flex flex-column align-items-end">
+  <!-- 个人资料部分 -->
+  <header class="profile-wrapper">
+    <!-- 头像 -->
+    <a href="{% url 'blog:index' %}" id="avatar" class="rounded-circle">
+        <img src="{% static 'assets/img/favicons/apple-touch-icon.png' %}"  alt="avatar" onerror="this.style.display='none'">
+    </a>
+
+    <!-- 网站标题 -->
+    <h1 class="site-title">
+      <a href="{% url 'blog:index' %}">羽毛笔</a>
+    </h1>
+    <!-- 网站副标题 -->
+    <p class="site-subtitle fst-italic mb-0">看看外面的世界</p>
+  </header>
+
+  <!-- 导航部分 -->
+  <nav class="flex-column flex-grow-1 w-100 ps-0">
+    <ul class="nav">
+      <!-- 主页链接 -->
+<!--      <li class="nav-item{% if request.path == '/' %} active{% endif %}">-->
+<!--        <a href="{% url 'blog:index' %}" class="nav-link">-->
+<!--          <i class="fa-fw fas fa-home"></i>-->
+<!--          <span>首页</span>-->
+<!--        </a>-->
+<!--      </li>-->
+      <!-- 实际的选项卡 -->
+      {% global_nav %}
+      {% for tab in tabs %}
+        <li class="nav-item{% if request.path == tab.url %} active{% endif %}">
+          <a href="{{ tab.url }}" class="nav-link">
+            <i class="fa-fw {{ tab.icon }}"></i>
+              <span>{{ tab.title }}</span>
+          </a>
+        </li>
+      {% endfor %}
+    </ul>
+  </nav>
+
+  <!-- 底部部分 -->
+  <div class="sidebar-bottom d-flex flex-wrap align-items-center w-100">
+      <button type="button" class="btn btn-link nav-link" aria-label="Switch Mode" id="mode-toggle"  title="切换主题" >
+        <i class="fas fa-adjust"></i>
+      </button>
+      <span class="icon-border"></span>
+
+    <!-- 联系方式 -->
+    <!-- GitHub Link -->
+    <a href="https://github.com/littlekj" aria-label="github" target="_blank" rel="noopener noreferrer" title="GitHub">
+      <!-- Icon for GitHub -->
+      <i class="fab fa-github"></i>
+    </a>
+
+    <!-- Email Link -->
+    <!-- 启动默认的邮件客户端，准备发送邮件 -->
+    <a href="mailto: electronic mail"
+       aria-label="email"
+       onclick="this.href='mailto:' + ['qi7e11', 'foxmail.com'].join('@'); alert('即将启动默认的邮件客户端'); return true;"
+       title="发送邮件">
+      <i class="fas fa-envelope"></i>
+    </a>
+
+    <!-- RSS Feed Link -->
+    <a href="{% url 'blog:rss_feed' %}" aria-label="rss" title="订阅RSS">
+      <!-- Icon for RSS feed -->
+      <i class="fas fa-rss"></i>
+    </a>
+  </div>
+
+</aside>
+

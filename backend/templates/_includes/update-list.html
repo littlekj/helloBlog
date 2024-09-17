@@ -1,0 +1,17 @@
+<!-- 检查是否有最新文章列表 -->
+<section id="access-lastmod">
+  <!-- 面板标题，显示最后修改的文章 -->
+  <h2 class="panel-heading">最近更新</h2>
+  <ul class="content list-unstyled ps-0 pb-1 ms-1 mt-2">
+    <!-- 循环遍历最新文章列表 -->
+    {% if recent_posts %}
+      {% for post in recent_posts %}
+        <!-- 为每篇文章生成一个链接项 -->
+        <li class="text-truncate lh-lg">
+          <a href="{{ post.get_absolute_url }}">{{ post.title }}</a>
+        </li>
+      {% endfor %}
+    {% endif %}
+  </ul>
+</section>
+

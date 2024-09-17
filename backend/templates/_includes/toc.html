@@ -1,0 +1,71 @@
+{% load static %}
+
+{% if post.toc %}
+<section class="ps-0 pe-4" id="toc-wrapper">
+    <h2 class="panel-heading ps-3 mb-2">目录内容</h2>
+    <nav id="toc">
+        {{ post.toc|safe }}
+    </nav>
+</section>
+{% endif %}
+
+
+<style>
+/* 目录层级默认折叠状态 */
+.is-collapsed {
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.3s ease-out;
+}
+/* 鼠标悬停（hover）或聚焦（focus）到该目录项时展开 */
+.toc-list-item:hover > .toc-list.is-collapsible,
+.toc-list-item:focus-within > .toc-list.is-collapsible {
+    max-height: 1000px;  /* 确保可以完全展开 */
+    overflow: visible;
+}
+
+</style>
+
+<!--实现平滑滚动，高亮当前目录项-->
+<script src="https://cdn.jsdelivr.net/npm/tocbot@4.29.0/dist/tocbot.min.js"></script>
+
+<!--  引入相关的js文件，以便在页面加载时执行相应的功能。-->
+<!--避免放置基础模板中，有全局变量冲突，只需要在文章页面加载时执行。-->
+<script defer src="{% static 'assets/js/dist/post.min.js' %}"></script>
+
+<!--将 h2, h3, h4 等标题标签的内容转换成指定的格式以便修饰-->
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        // 选择所有的 h2， h3，h4 元素
+        document.querySelectorAll('h2, h3, h4').forEach(element => {
+            // 选择标题文本和 <a> 元素
+            const textNode = element.childNodes[0];  // 获取第一个子节点
+            const anchor = element.querySelector('a');
+
+            if (anchor) {
+                // 创建新的 <span> 元素
+                const span = document.createElement('span');
+                span.className = 'me-2'; // 添加类名以调整样式
+                span.textContent = textNode.textContent.trim();  // 获取标题文本并去除首尾空格
+
+                // 清空 element 内部的 HTML 内容
+                element.innerHTML = '';
+
+                // 将 <span> 和 <a> 元素添加到 element 中
+                element.appendChild(span);
+
+                // 更新 <a> 元素的 class 和 添加 <i> 元素
+                anchor.className = 'header-anchor anchor text-muted';
+                if (!anchor.querySelector('i')) {
+                    const icon = document.createElement('i');
+                    icon.className = 'fas fa-hashtag';
+                    anchor.appendChild(icon);
+                }
+                element.appendChild(anchor);
+            }
+        });
+    });
+
+
+
+</script>

@@ -1,0 +1,19 @@
+{% load blog_tags %}
+{% calculate_read_time content=post.body %}
+
+<!-- 计算文章阅读时间，并在工具提示中显示字数 -->
+<span
+  class="readtime"
+  data-bs-toggle="tooltip"
+  data-bs-placement="bottom"
+  title="{{ words }} 单词/字"
+>
+  {# 如果有提示词，则显示提示信息 #}
+    {{ "阅读时长：" }}  <!-- 显示阅读提示 -->
+
+  <em>
+    约 {{ read_time }} <!-- 显示阅读时间 -->
+    {{ " 分钟" }}  <!-- 阅读时间单位，例如分钟 -->
+  </em>
+
+</span>

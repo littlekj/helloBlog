@@ -1,0 +1,22 @@
+<div id="page-category">
+  <h1 class="ps-lg-2">
+    <i class="far fa-folder-open fa-fw text-muted"></i>
+    {{ selected_category.name }}
+    <span class="lead text-muted ps-2">{{ selected_category.post_set.count }} 个帖子</span>
+  </h1>
+  {% if related_posts %}
+  <ul class="content ps-0">
+    {% for post in related_posts %}
+      <li class="d-flex justify-content-between px-md-3">
+        <a href="{{ post.get_absolute_url }}">{{ post.title }}</a>
+        <span class="dash flex-grow-1"></span>
+        {% if post.modified_time %}
+        <time class="text-muted small text-nowrap">{{ post.modified_time|date:"Y/m/d" }}</time>
+        {% else %}
+        <time class="text-muted small text-nowrap">{{ post.created_time|date:"Y/m/d" }}</time>
+        {% endif %}
+      </li>
+    {% endfor %}
+  </ul>
+  {% endif %}
+</div>

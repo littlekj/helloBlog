@@ -1,0 +1,68 @@
+<!-- 后端导入JS静态文件 -->
+{% load static %}
+{% load page_tags %}
+
+{% comment %}
+注释部分，暂时不使用
+<!-- 引入所有的JS文件 -->
+{% static_jsfile %}
+{% for js in js_files %}
+    <script src="{% static js %}"></script>
+{% endfor %}
+
+{% for js in javascript_files %}
+    <script type="module" src="{% static js %}"></script>
+{% endfor %}
+{% endcomment %}
+
+<!-- 公共部分的 JS 文件 -->
+<!--<script src="{% static 'assets/js/dist/tooltip-loader.js' %}"></script>-->
+<script src="{% static 'assets/js/dist/back-to-top.js' %}"></script>
+
+<!--在线引入有些问题-->
+<!--<scripts src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></scripts>-->
+<!--<scripts src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/line-numbers/prism-line-numbers.min.js"></scripts>-->
+
+<!-- 引入 Prism.js 的核心库和行号插件 -->
+<!-- 确保 Prism.js 在 DOM 加载完成后初始化 -->
+<script src="{% static 'assets/js/dist/prism.js' %}"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+      Prism.highlightAll();
+    });
+</script>
+
+
+{% comment %}
+<!-- 非首页的页面（比如文章和单页）加载图片懒加载、弹出框和剪贴板功能 -->
+
+<!-- 包含 Day.js 相关的 JS 文件 -->
+
+<!-- 加载目录树 JS，如果页面内容包含 <h2 或 <h3 标签并且站点配置了 TOC -->
+
+<!-- 如果页面启用了 Mermaid 图表，则加载 Mermaid JS 文件 -->
+
+<!-- 引入合并后的 JS 文件 -->
+
+{#{% include '_includes/jsdelivr-combine.html' %}#}
+
+<!-- 根据页面布局确定使用的 JS 文件 -->
+
+<!-- 引入最终的 JS 文件 -->
+
+<!-- 如果页面启用了 MathJax 数学公式，则加载 MathJax 相关的 JS 文件 -->
+<script src="https://cdnjs.cloudflare.com/polyfill/v3/polyfill.min.js?features=es6"></script>
+
+<!-- 页面浏览量统计 -->
+<!--{% include "_includes/pageviews/goatcounter.html" %}-->
+
+<!-- 如果页面启用了 Mermaid 图表，加载相关的 HTML 部分 -->
+<!--{% include "_includes/mermaid.html" %}-->
+
+<!-- 如果在生产环境下，加载 PWA 和 Web Analytics -->
+
+<!-- PWA 支持 -->
+
+<!-- Web Analytics 统计 -->
+{% endcomment %}
+

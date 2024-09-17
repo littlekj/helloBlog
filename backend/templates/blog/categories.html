@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+
+{% block content %}
+<!-- 主内容区域 -->
+    <article class="px-1">
+        <!-- 文章内容区域 -->
+        <h1 class="dynamic-title">分类</h1>
+        <div class="content">
+            <!-- 内容区域 -->
+            {% include '_includes/category_tree.html' with categories=categories %}
+        </div>
+    </article>
+{% endblock %}
+

@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+
+{% block content %}
+<!-- 主内容区域 -->
+<article class="px-1">
+    <div id="page-tag">
+      <h1 class="ps-lg-2">
+        <i class="fa fa-tag fa-fw text-muted"></i>
+        {{ selected_tag.name }}
+        {% if post_list %}
+        <span class="lead text-muted ps-2">{{ post_list|length }} 个帖子</span>
+      </h1>
+      <ul class="content ps-0">
+        {% for post in post_list %}
+          <li class="d-flex justify-content-between px-md-3">
+            <a href="{{ post.get_absolute_url }}">{{ post.title }}</a>
+            <span class="dash flex-grow-1"></span>
+            {% if post.modified_time %}
+            <time class="text-muted small text-nowrap">{{ post.modified_time|date:"Y/m/d" }}</time>
+            {% else %}
+            <time class="text-muted small text-nowrap">{{ post.created_time|date:"Y/m/d" }}</time>
+            {% endif %}
+          </li>
+        {% endfor %}
+        {% endif %}
+      </ul>
+    </div>
+</article>
+{% endblock %}
+

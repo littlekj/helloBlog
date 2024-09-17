@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+
+{% block content %}
+<!-- 主内容区域 -->
+    <article class="px-1">
+        <!-- 文章内容区域 -->
+        <h1 class="dynamic-title"></h1>
+        <!-- 动态标题，显示“Categories” -->
+        <div class="content">
+            <!-- 内容区域 -->
+            {% include '_includes/category_detail.html' with selected_category=selected_category related_posts=related_posts %}
+        </div>
+    </article>
+{% endblock %}
+
+

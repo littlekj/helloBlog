@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+
+{% block content %}
+<!-- 主内容区域 -->
+    <article class="px-1">
+
+        <h1 class="dynamic-title">标签</h1>
+
+        <div class="content">
+            <!-- 内容区域 -->
+            <div id="tags" class="d-flex flex-wrap mx-xl-2">
+              {% for tag in tag_list %}
+                <div>
+                  <a class="tag" href="{{ tag.get_absolute_url }}">
+                    {{ tag.name }}
+                    <span class="text-muted">{{ tag.post_set.count }}</span>
+                  </a>
+                </div>
+              {% endfor %}
+            </div>
+        </div>
+    </article>
+{% endblock %}
+
+

@@ -11,6 +11,16 @@ https://docs.djangoproject.com/en/4.2/ref/settings/
 """
 
 from pathlib import Path
+import os
+from .common import *
+from dotenv import load_dotenv
+
+# 加载 .env 文件中的环境变量
+load_dotenv()
+
+# 从环境变量中获取配置
+DB_USER = os.getenv('DB_USER')
+DB_PASS = os.getenv('DB_PASS')
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -21,13 +31,10 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = 'django-insecure-!txzg@7*-((*x+8@k@#z#++@*i19k-_$5@v&g^z%4t9cg_ub!b'
 
-import os
-from .base import *
-
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['*']
 
 # Application definition
 
@@ -41,6 +48,7 @@ INSTALLED_APPS = [
     'blog',
     'comment',
     'haystack',
+    'django.contrib.sitemaps',
 ]
 
 # Haystack 配置
@@ -53,10 +61,13 @@ HAYSTACK_CONNECTIONS = {
         'INDEX_NAME': 'blog_index',
         'KWARGS': {
             'http_auth': ('elastic', 'elastic'),  # Elasticsearch 实际设置的用户名和密码
+            # 'timeout': 30,  # 将超时时间设置为 30 秒
             # 'use_ssl': True,
             # 'verify_certs': False,
             # 'ca_certs': '/path/to/ca.crt',
         },
+        'INCLUDE_SPELLING': True,  # 是否开启拼写检查
+        'DEFAULT_OPERATOR': 'AND',  # 默认的查询操作符，用于处理多个关键词的搜索
     },
 }
 
@@ -74,7 +85,11 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'blog.middleware.StoreLastURLMiddleware',  # 自定义中间件
+    # 'whitenoise.middleware.WhiteNoiseMiddleware',  # WhiteNoise 中间件
 ]
+
+SESSION_ENGINE = 'django.contrib.sessions.backends.db'
 
 ROOT_URLCONF = 'backend.urls'
 
@@ -100,9 +115,29 @@ WSGI_APPLICATION = 'backend.wsgi.application'
 # https://docs.djangoproject.com/en/4.2/ref/settings/#databases
 
 DATABASES = {
+    # 'default': {
+    #     'ENGINE': 'django.db.backends.sqlite3',
+    #     'NAME': os.path.join(BASE_DIR, 'database', 'db.sqlite3'),
+    # }
+
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': os.path.join(BASE_DIR, 'database', 'db.sqlite3'),
+        # 数据库引擎配置
+        'ENGINE': 'django.db.backends.mysql',
+        # 数据库的名称
+        'NAME': 'blog',
+        # 数据库服务器的 IP 地址(如果是本机，可以配置成 localhost 或 127.0.0.1)
+        'HOST': '101.34.211.137',
+        # 启动 MySQL 服务的端口号
+        'PORT': 3306,
+        # 数据库用户名和口令
+        'USER': DB_USER,
+        'PASSWORD': DB_PASS,
+        # 数据库使用的字符集
+        'CHARSET': 'utf8mb4',
+        # 数据库时间日期的时区设定
+        'TIME_ZONE': 'Asia/Chongqing',
+        # 设置连接最大存活时间（例如 600 秒，0 表示无连接池，None 表示永久连接）
+        'CONN_MAX_AGE': 600,
     }
 }
 
@@ -143,7 +178,17 @@ USE_TZ = True
 
 STATIC_URL = 'static/'
 
-STATIC_ROOT = os.path.join(BASE_DIR, 'static')
+# 在开发环境，指定额外的静态文件目录
+STATICFILES_DIRS = [
+    BASE_DIR / "static",
+]
+
+# STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
+#
+# # 启用 WhiteNoise 压缩（如 gzip）和缓存
+# STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
+# # 设置浏览器缓存控制头，避免每次请求都下载静态文件
+# WHITENOISE_MAX_AGE = 31536000  # 缓存时间为一年
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/4.2/ref/settings/#default-auto-field

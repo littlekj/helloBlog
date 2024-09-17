@@ -1,0 +1,41 @@
+<!-- The Footer -->
+
+<footer aria-label="Site Info"
+  class="
+    d-flex flex-column justify-content-center text-muted
+    flex-lg-row justify-content-lg-between align-items-lg-center pb-lg-3"
+>
+  <p>
+    {{ '©' }}
+    {% now "Y" as current_year %}
+    <time>{{ current_year }}</time>
+      <a href="#">羽毛笔</a>
+      <em class="fst-normal">{{ social_name }}</em>
+      <span
+        data-bs-toggle="tooltip"
+        data-bs-placement="top"
+        title="{{ copyright_verbose }}"
+      >
+      {{ "保留所有权利 | " }}
+      <a href="https://beian.miit.gov.cn/#/Integrated/index">{{ "豫ICP备2024085836号"}}</a>
+      </span>
+  </p>
+
+  <p>
+      {% with platform='Jekyll' theme='Chirpy' %}
+      基于
+      <a
+        data-bs-toggle="tooltip"
+        data-bs-placement="top"
+        title="{{ theme_version }}"
+        href="https://github.com/cotes2020/jekyll-theme-chirpy"
+        target="_blank"
+        rel="noopener"
+      >
+          {{ platform }} {{ theme }}
+      </a>
+      主题
+      {% endwith %}
+  </p>
+</footer>
+

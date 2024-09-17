@@ -1,0 +1,13 @@
+/* 事先引入 bootstrap/js/src/tooltip */
+
+function loadTooltip() {
+    const tooltipTriggerList = document.querySelectorAll(
+      '[data-bs-toggle="tooltip"]'
+    );
+
+    tooltipTriggerList.forEach((tooltipTriggerEl) => {
+      new bootstrap.Tooltip(tooltipTriggerEl);
+    });
+  }
+
+  document.addEventListener("DOMContentLoaded", loadTooltip);

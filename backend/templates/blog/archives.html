@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+
+{% block content %}
+<!-- 主内容区域 -->
+<article class="px-1">
+    <h1 class="dynamic-title">归档</h1>
+    <div class="content">
+        <!-- 内容区域 -->
+        <div id="archives" class="pl-xl-3">
+            {% for year, posts in post_list_by_year.items %}
+            <time class="year lead d-block">{{year}}</time>
+            <ul class="list-unstyled">
+                {% for post in posts %}
+                {% if not post.modified_time %}
+                <li>
+                    <!--<span class="date month small text-muted ms-1">{{ post.created_time|date:"m" }}</span>-->
+                    <span class="date day">{{ post.created_time|date:"m-d" }}</span>
+                    <a href="{{ post.get_absolute_url }}">{{ post.title }}</a>
+                </li>
+                {% else %}
+                <li>
+                    <!--<span class="date month small text-muted ms-1">{{ post.modified_time|date:"m" }}</span>-->
+                    <span class="date day">{{ post.modified_time|date:"m-d" }}</span>
+                    <a href="{{ post.get_absolute_url }}">{{ post.title }}</a>
+                </li>
+                {% endif %}
+                {% endfor %}
+            </ul>
+            {% endfor %}
+        </div>
+    </div>
+</article>
+{% endblock %}
+
+

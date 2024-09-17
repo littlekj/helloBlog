@@ -4,6 +4,49 @@ import re
 from bs4 import BeautifulSoup
 
 
+def dict_to_html(toc, isactive, collapsed):
+    """
+    将目录结构的字典转换为 HTML
+    :param toc: 目录结构的字典
+    :param isactive: 是否激活当前目录项
+    :param collapsed: 是否折叠目录
+    """
+    if toc:
+        def dict_to_html_recursive(toc, isactive, collapsed):
+            """
+            递归地将目录结构的字典转换为 HTML
+            """
+            if not collapsed:
+                html = '<ul class="toc-list">'
+                collapsed = True
+            else:
+                html = '<ul class="toc-list is-collapsible is-collapsed">'
+
+            for title, sub_toc in toc.items():
+                slug = slugify(title)
+                # print('slug:', slug)
+                level = int(sub_toc['level'])
+
+                if isactive:
+                    html += f'<li class="toc-list-item is-active-li"><a href="#{slug}" class="toc-link node-name--H{level} is-active-link">' \
+                            f'<font style="vertical-align: inherit;"><font style="vertical-align: inherit;">{title}</font></font></a>'
+                    isactive = False
+                else:
+                    html += f'<li class="toc-list-item"><a href="#{slug}" class="toc-link node-name--H{level}">' \
+                            f'<font style="vertical-align: inherit;"><font style="vertical-align: inherit;">{title}</font></font></a>'
+
+                if sub_toc['children']:
+                    html += dict_to_html(sub_toc['children'], isactive, collapsed)
+                html += '</li>'
+            html += '</ul>'
+            return html
+
+        return dict_to_html_recursive(toc, isactive, collapsed)
+
+    else:
+        return ''
+
+
 def generate_toc(markdown_parser, markdown_text):
     """
     生成 HTML 目录
@@ -22,16 +65,13 @@ def generate_toc(markdown_parser, markdown_text):
 
     # 遍历 tokens 并生成目录项
     for i, token in enumerate(tokens):
-        # print('token:', token)
         # 处理标题
         if token.type == 'heading_open':
             if token.tag in tag:
-                # print('token.tag:', token.tag)
                 # 获取当前标题的级别
                 level = str(token.tag)[1]
                 # 获取当前标题的内容
                 title = tokens[i + 1].content
-                # print('title', title)
 
                 # 弹出堆栈中的元素，直到找到正确的层级
                 while stack and stack[-1][1] >= level:
@@ -41,37 +81,39 @@ def generate_toc(markdown_parser, markdown_text):
                 current_toc = stack[-1][0] if stack else toc
 
                 # 添加新的目录节点
-                current_toc[title] = {'children': {}}
+                current_toc[title] = {'children': {}, 'level': level}
 
                 # 将当前节点和层级压入堆栈
                 stack.append((current_toc[title]['children'], level))
+    # print("dict(toc):", dict(toc))
 
     # return dict(toc)  # 转化为普通 dict
 
-    def dict_to_html(toc):
-        """
-        将目录结构的字典转换为 HTML
-        :param toc: 目录结构的字典
-        """
+    # # 转换的HTML结构简陋，注释掉
+    # def dict_to_html(toc):
+    #     """
+    #     将目录结构的字典转换为 HTML
+    #     :param toc: 目录结构的字典
+    #     """
+    #
+    #     def dict_to_html_recursive(node):
+    #         """
+    #         递归地将目录结构的字典转换为 HTML
+    #         """
+    #         html = '<ul>'
+    #         for title, sub_node in node.items():
+    #             slug = slugify(title)
+    #             # print('slug:', slug)
+    #             html += f'<li id="{slug}"><a href="#{slug}">{title}</a>'
+    #             if sub_node['children']:
+    #                 html += dict_to_html(sub_node['children'])
+    #             html += '</li>'
+    #         html += '</ul>'
+    #         return html
+    #
+    #     return dict_to_html_recursive(toc)
 
-        def dict_to_html_recursive(node):
-            """
-            递归地将目录结构的字典转换为 HTML
-            """
-            html = '<ul>'
-            for title, sub_node in node.items():
-                slug = slugify(title)
-                # print('slug:', slug)
-                html += f'<li id="{slug}"><a href="#{slug}">{title}</a>'
-                if sub_node['children']:
-                    html += dict_to_html(sub_node['children'])
-                html += '</li>'
-            html += '</ul>'
-            return html
-
-        return dict_to_html_recursive(toc)
-
-    return dict_to_html(dict(toc))
+    return dict_to_html(dict(toc), True, False)
 
 
 def replace_markdown_symbols(markdown_text):
@@ -157,3 +199,15 @@ class CustomHighlighter(Highlighter):
 
         # 渲染高亮显示的 HTML
         return self.render_html(highlight_locations, start_offset, end_offset)
+
+
+def standardize_highlight(highlighted):
+    """
+    Elasticsearch 查询字段可能会返回不同的数据类型，如字符串或字符串列表。
+    将这些数据类型标准化为字符串，以便后续处理。
+    """
+    if isinstance(highlighted, list):
+        return '...'.join(highlighted)  # 如果是列表，则连接成一个字符串
+    elif isinstance(highlighted, str):
+        return highlighted  # 如果已经是字符串，直接返回
+    return ''  # 如果既不是列表也不是字符串，返回空字符

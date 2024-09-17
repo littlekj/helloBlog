@@ -1,0 +1,41 @@
+<!--
+    search-result-wrapper 是一个容器，默认隐藏（使用 d-none 类）。
+    当搜索结果可用时，该容器将显示。
+-->
+{% load static %}
+<div id="search-result-wrapper" class="d-flex justify-content-center">
+  <div class="col-11 content">
+    <!-- 搜索结果区域 -->
+<!--    <div id="search-results" class="d-flex flex-wrap justify-content-center text-muted mt-3"></div>-->
+    <div id="search-results" class="d-flex flex-wrap text-muted mt-3 row justify-content-start"></div>
+  </div>
+</div>
+
+<script src="{% static 'assets/js/dist/search-display.js' %}"></script>
+
+<style>
+	/* 搜索关键词高亮 */
+	article em {
+	  color: red;
+	}
+
+	/* 默认分页样式 */
+    .page-item .page-link {
+      /* 添加默认分页样式 */
+    }
+
+    /* 移动设备样式 */
+    @media (max-width: 767px) {
+      .pagination {
+        display: none; /* 隐藏桌面端分页 */
+      }
+
+      .pagination-mobile {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        padding: 10px;
+        font-size: 14px;
+      }
+    }
+</style>
