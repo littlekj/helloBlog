@@ -13,7 +13,7 @@ document.addEventListener('DOMContentLoaded', function() {
         // 设置去抖动 debounce 机制，防止用户快速输入时多次触发请求
         clearTimeout(debounceTimer);  // 清除上一次的定时器
         debounceTimer = setTimeout(function() {
-            const query = searchInput.value.trim();
+            query = searchInput.value.trim();
             console.log('Fetching results for query:', query);  // 添加调试
             if (query.length > 0) {
                 // 显示取消按钮
@@ -24,6 +24,13 @@ document.addEventListener('DOMContentLoaded', function() {
             } else {
                 // 清空搜索结果容器
                 searchResultsContainer.innerHTML = '';
+
+                // 隐藏搜索结果容器
+                searchResultWrapper.classList.add('d-none');
+
+                // 显示当前页面之前内容
+                document.querySelector("div.row.flex-grow-1")?.classList.remove('d-none');
+                document.querySelector("#main-wrapper > div > div:nth-child(3)")?.classList.remove('d-none');
             }
         }, 300);  // 延迟 300 毫秒 发起请求
     });
@@ -51,15 +58,15 @@ document.addEventListener('DOMContentLoaded', function() {
                 // 显示搜索结果容器
                 searchResultWrapper.classList.remove('d-none');
             } else {
-                console.error('No HTML found in response data.');
                 // 没有结果时显示提示
                 searchResultsContainer.innerHTML = '<p class="row justify-content-center">呜呜~没有找到结果</p>';
                 searchResultWrapper.classList.remove('d-none');
+                console.error('No HTML found in response data.');
              }
         }).catch(error => {
-             console.error('搜索请求失败:', error);
             // 请求失败时的提示信息
             searchResultsContainer.innerHTML = '<p class="row justify-content-center">搜索请求失败，请稍后再试</p>';
+            console.error('搜索请求失败:', error);
         });
     }
 
@@ -70,7 +77,7 @@ document.addEventListener('DOMContentLoaded', function() {
       searchResultWrapper.classList.add('d-none');
       searchCancelButton.classList.add('d-none');
 
-      // 显示其他主体内容
+      // 显示当前页面之前的内容
       document.querySelector("div.row.flex-grow-1")?.classList.remove('d-none');
       document.querySelector("#main-wrapper > div > div:nth-child(3)")?.classList.remove('d-none');
 

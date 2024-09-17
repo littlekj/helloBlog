@@ -1,0 +1,41 @@
+/* 表格样式 */
+table {
+    width: auto;
+    border-collapse: collapse;
+    margin: 1em 0;
+}
+
+table, th, td {
+    border: 1px solid #ddd;
+}
+
+th, td {
+    padding: 4px;
+    text-align: left;
+}
+
+th {
+    background-color: #f2f2f2;
+}
+
+
+   /* 确保代码块样式不受影响 */
+<!--        <style>-->
+<!--            pre, code {-->
+<!--                background-color: #F6F8FA; /* 适合的颜色 */-->
+<!--                border: none;-->
+<!--                padding: 8px;-->
+<!--                border-radius: 4px;-->
+<!--            }-->
+<!--            -->
+<!--            /* 特定于代码块内表格的样式 */-->
+<!--            pre table {-->
+<!--                border: none; /* 取消代码块内表格的边框 */-->
+<!--            }-->
+
+<!--            /* 更高优先级的代码块样式 */-->
+<!--            pre code {-->
+<!--                color: #333; /* 示例代码块颜色 */-->
+<!--            }-->
+<!--        </style>-->
+
