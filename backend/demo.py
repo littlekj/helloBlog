@@ -1,15 +1,15 @@
-# import os
-# import django
-#
-# # 设置环境变量
-# os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'backend.settings')
-#
-# # 设置 Django
-# django.setup()
-#
-# from blog.models import Category, Tag, Post
-# from django.contrib.auth.models import User
-# from django.utils import timezone
+import os
+import django
+
+# 设置环境变量
+os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'settings.development')
+
+# 设置 Django
+django.setup()
+
+from blog.models import Category, Tag, Post
+from django.contrib.auth.models import User
+from django.utils import timezone
 #
 # # 获取或创建必要的对象
 # Category(name='Python').save()
@@ -34,8 +34,7 @@
 # post.save()
 #
 # post.tags.set(curr_tags)
-
-
+from django.db.models import Count
 # # 自定义解析器
 #
 # import re
@@ -182,94 +181,99 @@ from markdown_it import MarkdownIt
 from collections import defaultdict
 
 
-def generate_toc(markdown_text):
-    # 解析 Markdown 文本
-    tokens = MarkdownIt().parse(markdown_text)
+# def generate_toc(markdown_text):
+#     # 解析 Markdown 文本
+#     tokens = MarkdownIt().parse(markdown_text)
+#
+#     tag = ['h1', 'h2', 'h3', 'h4', 'h5', 'h6']
+#     toc = defaultdict(dict)
+#     stack = []
+#
+#     # 遍历 tokens 并生成目录项
+#     for i, token in enumerate(tokens):
+#         if token.type == 'heading_open':
+#             if token.tag in tag:
+#                 level = str(token.tag)[1]
+#                 title = tokens[i + 1].content
+#                 print('content', title)
+#                 while stack and stack[-1][1] >= level:
+#                     stack.pop()
+#
+#                 current_toc = stack[-1][0] if stack else toc
+#
+#                 current_toc[title] = {'children': {}}
+#                 stack.append((current_toc[title]['children'], level))
+#
+#     return dict(toc)
+#
+#
+# def dict_to_html(toc):
+#     def dict_to_html_recursive(node):
+#         html = '<div class="toc"><ul>'
+#         for title, sub_node in node.items():
+#             html += f'<li><a href="#{title}">{title}</a>'
+#             if sub_node['children']:
+#                 html += dict_to_html(sub_node['children'])
+#             html += '</li>'
+#         html += '</ul></div>'
+#         return html
+#
+#     return dict_to_html_recursive(toc)
+#
+#
+# # Markdown 文本示例
+# markdown_content = """
+# # Title 1
+# Some content here.
+#
+# ## Subtitle 1.1
+# More content here.
+#
+# ### Sub-subtitle 1.1.1
+# Even more content here.
+#
+# ## Subtitle 1.2
+# Additional content here.
+#
+# # Title 2
+# Other content here.
+# """
+#
+# # 初始化 MarkdownIt 实例
+# md = MarkdownIt()
+#
+# # 生成目录
+# toc = generate_toc(markdown_content)
+# toc_html = dict_to_html(toc)
+#
+# # 打印目录 HTML
+# print(toc_html)
+#
+# from markdown_it import MarkdownIt
+# from mdit_py_plugins.anchors import anchors_plugin
+#
+# # 创建 MarkdownIt 实例
+# md = MarkdownIt()
+#
+# # 添加 anchors_plugin 插件
+# md.use(anchors_plugin, min_level=1, max_level=2, permalink=True, permalinkSymbol='¶ ', permalinkBefore=False,
+#        permalinkSpace=True)
+#
+# # 示例 Markdown 文本
+# markdown_text = """
+# # Title String
+# ## Subheading
+#
+# Some text here.
+# """
+#
+# # 解析 Markdown 文本
+# html = md.render(markdown_text)
+#
+# # 输出 HTML
+# print(html)
 
-    tag = ['h1', 'h2', 'h3', 'h4', 'h5', 'h6']
-    toc = defaultdict(dict)
-    stack = []
 
-    # 遍历 tokens 并生成目录项
-    for i, token in enumerate(tokens):
-        if token.type == 'heading_open':
-            if token.tag in tag:
-                level = str(token.tag)[1]
-                title = tokens[i + 1].content
-                print('content', title)
-                while stack and stack[-1][1] >= level:
-                    stack.pop()
-
-                current_toc = stack[-1][0] if stack else toc
-
-                current_toc[title] = {'children': {}}
-                stack.append((current_toc[title]['children'], level))
-
-    return dict(toc)
-
-
-def dict_to_html(toc):
-    def dict_to_html_recursive(node):
-        html = '<div class="toc"><ul>'
-        for title, sub_node in node.items():
-            html += f'<li><a href="#{title}">{title}</a>'
-            if sub_node['children']:
-                html += dict_to_html(sub_node['children'])
-            html += '</li>'
-        html += '</ul></div>'
-        return html
-
-    return dict_to_html_recursive(toc)
-
-
-# Markdown 文本示例
-markdown_content = """
-# Title 1
-Some content here.
-
-## Subtitle 1.1
-More content here.
-
-### Sub-subtitle 1.1.1
-Even more content here.
-
-## Subtitle 1.2
-Additional content here.
-
-# Title 2
-Other content here.
-"""
-
-# 初始化 MarkdownIt 实例
-md = MarkdownIt()
-
-# 生成目录
-toc = generate_toc(markdown_content)
-toc_html = dict_to_html(toc)
-
-# 打印目录 HTML
-print(toc_html)
-
-from markdown_it import MarkdownIt
-from mdit_py_plugins.anchors import anchors_plugin
-
-# 创建 MarkdownIt 实例
-md = MarkdownIt()
-
-# 添加 anchors_plugin 插件
-md.use(anchors_plugin, min_level=1, max_level=2, permalink=True, permalinkSymbol='¶ ', permalinkBefore=False,
-       permalinkSpace=True)
-
-# 示例 Markdown 文本
-markdown_text = """
-# Title String
-## Subheading
-
-Some text here.
-"""
-
-# 解析 Markdown 文本
-html = md.render(markdown_text)
-
-# 输出 HTML
-print(html)
+from blog.models import Category
+categories = Category.objects.values('slug').annotate(count=Count('slug')).filter(count__gt=1)
+print("categories:", categories)

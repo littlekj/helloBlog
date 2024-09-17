@@ -6,7 +6,7 @@ name = "pypi"
 [packages]
 django = "*"
 mdit-py-plugins = "*"
-markdown-it-py = {extras = ["linkify", "plugins"], version = "*"}
+markdown-it-py = {extras = ["linkify", "plugins"] }
 pypandoc = "*"
 beautifulsoup4 = "*"
 python-dotenv = "*"
@@ -15,6 +15,7 @@ python-dotenv = "*"
 faker = "*"
 django-haystack = "*"
 elasticsearch = "<8,>=7"
+mysqlclient = "*"
 
 [dev-packages]
 

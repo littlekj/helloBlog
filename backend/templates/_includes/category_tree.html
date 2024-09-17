@@ -1,0 +1,89 @@
+<!-- 内容区域 -->
+<!--<link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.1.3/css/bootstrap.min.css" rel="stylesheet">-->
+{% for category in categories %}
+<div class="card categories">
+    <!-- 类别卡片容器 -->
+    <div class="card-header d-flex justify-content-between" id="h_{{ forloop.counter0 }}">
+        <!-- 卡片标题，设置为两端对齐 -->
+        <span class="ms-2">
+            <!-- 左侧内容 -->
+            <i class="far fa-folder fa-fw"></i>
+            <!-- 文件夹图标 -->
+            <a class="mx-2" href="{{ category.get_absolute_url }}">{{ category.name }}</a>
+            <!-- 类别链接 -->
+            <span class="text-muted small font-weight-light">
+                {% if category.children.exists %}
+                    {{ category.children.count }} 个类别,
+                {% endif %}
+                {{ category.post_set.count }} 个帖子
+            </span>
+        </span>
+        {% if category.post_set.count %}
+        <a href="#l_{{ forloop.counter0 }}" data-bs-toggle="collapse" aria-expanded="false" aria-label="h_{{ forloop.counter0 }}-trigger" class="category-trigger hide-border-bottom collapsed"
+            >
+            <!-- 右侧触发器链接，用于展开/折叠子类别 -->
+            <i class="fas fa-fw fa-angle-down rotate"></i>
+            <!-- 向右箭头图标，表示当前内容可以展开 -->
+        </a>
+        {% endif %}
+    </div>
+
+    <div id="l_{{ forloop.counter0 }}" class="collapse" aria-expanded="true" style>
+        <ul class="list-group content ps-0">
+            {% for post in category.post_set.all %}
+            <li class="d-flex justify-content-between px-md-3">
+                <a href="{{ post.get_absolute_url }}">{{ post.title }}</a>
+                <span class="dash flex-grow-1"></span>
+                {% if post.modified_time %}
+            <!--<time class="text-muted small text-nowrap">{{ post.modified_time|date:"Y年n月j日" }}</time>-->
+                <time class="text-muted small text-nowrap">{{ post.modified_time|date:"Y/m/d" }}</time>
+                {% else %}
+                <time class="text-muted small text-nowrap">{{ post.created_time|date:"Y/m/d" }}</time>
+                {% endif %}
+            </li>
+            {% endfor %}
+        </ul>
+    </div>
+</div>
+{% endfor %}
+
+
+
+<!-- 确保项目已正确配置了Bootstrap和FontAwesome，以便正确显示样式和图标。 -->
+<!-- 引入 Bootstrap 的相关依赖 JavaScript 文件，依赖 Bootstrap tooltip-loader.js -->
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // 获取所有触发折叠的元素
+        document.querySelectorAll('[data-bs-toggle="collapse"]').forEach(function(trigger) {
+            // 为每个触发器添加点击事件监听器
+            trigger.addEventListener('click', function() {
+                var cardHeader = trigger.closest('.card-header');  // 获取触发器所在的卡片头部
+                var folderIcon = cardHeader.querySelector('.fa-folder, .fa-folder-open'); // 获取文件夹图标元素
+                var isExpanded = trigger.getAttribute('aria-expanded') === 'false'; // 检查当前是否是展开状态，默认折叠
+
+                // 切换文件夹图标
+                if (isExpanded) {
+                    //  如果当前为展开状态，则切换为折叠状态
+                    folderIcon.classList.remove('fa-folder-open');
+                    folderIcon.classList.add('fa-folder');
+                } else {
+                    //  如果当前为折叠状态，则切换为展开状态
+                    folderIcon.classList.remove('fa-folder');
+                    folderIcon.classList.add('fa-folder-open');
+                }
+
+                // 切换折叠触发器的箭头图标
+                var angleIcon = trigger.querySelector('i');
+                if (isExpanded) {
+                    // 如果当前是展开状态，将箭头图标切换为向下状态
+                    angleIcon.classList.remove('fa-angle-right');
+                    angleIcon.classList.add('fa-angle-down');
+                } else {
+                    // r如果当前是折叠状态，将箭头图标切换为向右状态
+                    angleIcon.classList.remove('fa-angle-down');
+                    angleIcon.classList.add('fa-angle-right');
+                }
+            });
+        });
+    });
+</script>

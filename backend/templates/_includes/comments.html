@@ -1,0 +1,102 @@
+<!-- 动态创建 script 元素来加载 Giscus 评论系统-->
+<!-- Giscus 评论区 -->
+<div class="giscus">
+    <iframe class="giscus-frame">
+    </iframe>
+</div>
+
+<!-- 引入 Giscus 的客户端脚本 -->
+<script src="https://giscus.app/client.js"
+        data-repo="littlekj/helloBlog"
+        data-repo-id="R_kgDOMfjaxQ"
+        data-category="Announcements"
+        data-category-id="DIC_kwDOMfjaxc4Cie3I"
+        data-mapping="og:title"
+        data-strict="0"
+        data-reactions-enabled="1"
+        data-emit-metadata="1"
+        data-input-position="top"
+        data-theme="preferred_color_scheme"
+        data-lang="zh-CN"
+        data-loading="lazy"
+        crossorigin="anonymous"
+        async>
+</script>
+
+<script type="text/javascript">
+  (function () {
+      // Giscus 的原始地址
+      const origin = 'https://giscus.app';
+      // 主题选项
+      const lightTheme = 'light';
+      const darkTheme = 'dark_dimmed';
+
+      let giscusAttributes= {
+        'data-description': 'Your custom description',
+        'data-term': '自定义一个标题',
+      }
+
+      // 动态创建 script 元素来加载 Giscus
+      let giscusScript = document.createElement('script');
+
+      // 将每个属性添加到 script 元素上
+    Object.entries(giscusAttributes).forEach(([key, value]) => giscusScript.setAttribute(key, value));
+
+    // 将创建的 script 元素添加到页面的指定位置
+    document.getElementById('tail-wrapper').appendChild(giscusScript);
+
+
+
+      /**
+       * 发送 Giscus 主题配置的消息
+       * @param {string} theme - 要设置的主题
+       */
+      function setGiscusTheme(theme) {
+        const message = {
+          setConfig: {
+            theme: theme,
+          }
+        };
+      }
+
+      // 监听来自 ModeToggle 的主题切换事件
+      window.addEventListener('message', (event) => {
+        if (event.source === window && event.data && event.data.direction === ModeToggle.ID) {
+          const mode = event.data.message;
+          const theme = mode === ModeToggle.DARK_MODE ? darkTheme : lightTheme;
+          setGiscusTheme(theme); // 动态切换 Giscus 主题
+        }
+      });
+
+      // 页面加载时应用初始主题
+      const initTheme = document.documentElement.getAttribute('data-mode') === 'dark' ? darkTheme : lightTheme;
+      setGiscusTheme(initTheme);
+    })();
+</script>
+
+
+<!--&lt;!&ndash;静态加载 Giscus 评论系统，指定 Giscus 系统的加载 URL 。&ndash;&gt;-->
+<!--<div class="giscus">-->
+<!--  <iframe class="giscus-frame"-->
+<!--          title="Comments"-->
+<!--          allow="clipboard-write"-->
+<!--          loading="lazy"-->
+<!--          scrolling="no"-->
+<!--          src = "https://giscus.app/zh-CN/widget?origin={{ giscus_src.origin|urlencode }}&theme={{ giscus_src.theme }}&reactionsEnabled={{ giscus_src.reactionsEnabled }}&emitMetadata={{ giscus_src.emitMetadata }}&inputPosition={{ giscus_src.inputPosition }}&repo={{ giscus_src.repo|urlencode }}&repoId={{ giscus_src.repoId }}&category={{ giscus_src.category }}&categoryId={{ giscus_src.categoryId }}&strict=0&description={{ giscus_src.description|urlencode }}&backLink={{ giscus_src.backLink|urlencode }}&term={{ giscus_src.term|urlencode }}"-->
+<!--          style="">-->
+<!--  </iframe>-->
+<!--</div>-->
+
+<!--<style>-->
+<!--  .giscus iframe {-->
+<!--    width: 100%;-->
+<!--    height: 400px; /* 默认高度 */-->
+<!--    border: none;-->
+<!--}-->
+
+<!--@media (max-width: 768px) {-->
+<!--    .giscus iframe {-->
+<!--        height: 300px; /* 移动端高度 */-->
+<!--    }-->
+<!--}-->
+<!--</style>-->

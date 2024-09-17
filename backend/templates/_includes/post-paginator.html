@@ -1,0 +1,77 @@
+<nav aria-label="Page Navigation">
+  <ul class="pagination align-items-center mt-4 mb-0">
+
+    <!-- 左箭头 -->
+    {% if page_obj.has_previous %}
+      <li class="page-item">
+        <a class="page-link" href="?page={{ page_obj.previous_page_number }}" aria-label="previous-page">
+          <i class="fas fa-angle-left"></i>
+        </a>
+      </li>
+    {% else %}
+      <li class="page-item disabled">
+        <a class="page-link" href="#" aria-label="previous-page">
+          <i class="fas fa-angle-left"></i>
+        </a>
+      </li>
+    {% endif %}
+
+    <!-- 如果当前页码大于3，显示第一页和省略号 -->
+    {% if page_obj.number > 3 %}
+      <li class="page-item">
+        <a class="page-link" href="?page=1">1</a>
+      </li>
+      {% if page_obj.number > 4 %}
+        <li class="page-item disabled">
+          <a class="page-link" href="#">...</a>
+        </li>
+      {% endif %}
+    {% endif %}
+
+    <!-- 页码显示逻辑 -->
+    {% for i in page_obj.paginator.page_range %}
+      {% if i >= page_obj.number|add:-2 and i <= page_obj.number|add:2 %}
+        <li class="page-item {% if i == page_obj.number %}active{% endif %}">
+          <a class="page-link" href="?page={{ i }}">{{ i }}</a>
+        </li>
+      {% endif %}
+    {% endfor %}
+
+
+    <!-- 如果当前页码小于倒数第3页，显示最后一页 -->
+    <!-- 如果当前页码小于倒数第4页，显示省略号 -->
+    {% if page_obj.number < page_obj.paginator.num_pages|add:-2 %}
+      {% if page_obj.number < page_obj.paginator.num_pages|add:-3 %}
+        <li class="page-item disabled">
+          <span class="page-link">...</span>
+        </li>
+      {% endif %}
+      <li class="page-item">
+        <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}">{{ page_obj.paginator.num_pages }}</a>
+      </li>
+    {% endif %}
+
+    <!-- 右箭头 -->
+    {% if page_obj.has_next %}
+      <li class="page-item">
+        <a class="page-link" href="?page={{ page_obj.next_page_number }}" aria-label="next-page">
+          <i class="fas fa-angle-right"></i>
+        </a>
+      </li>
+    {% else %}
+      <li class="page-item disabled">
+        <a class="page-link" href="#" aria-label="next-page">
+          <i class="fas fa-angle-right"></i>
+        </a>
+      </li>
+    {% endif %}
+
+    <!-- 移动设备的分页显示 - 当前页和总页数 -->
+    <li class="page-index align-middle">
+      <span>{{ page_obj.number }}</span>
+      <span class="text-muted">/ {{ page_obj.paginator.num_pages }}</span>
+    </li>
+  </ul>
+
+
+</nav>

@@ -1,0 +1,42 @@
+{# comment #}
+暂时不用，使用 _includes/search_results.html Ajax 页面内加载
+{# endcomment #}
+
+<!doctype html>
+{% load static %}
+{% load blog_tags %}
+<html lang="en">
+  <!-- 包含页面头部的 HTML 文件 -->
+  {% include '_includes/head.html' %}
+
+  <body>
+    <!-- 包含页面侧边栏的 HTML 文件 -->
+    {% include '_includes/sidebar.html' %}
+
+    <div id="main-wrapper" class="d-flex justify-content-center">
+      <div class="container d-flex flex-column px-xxl-5">
+        <!-- 包含页面顶部栏的 HTML 文件 -->
+        {% include '_includes/topbar.html' with breadcrumbs=breadcrumbs %}
+        <!-- 包含搜索结果的 HTML 文件 -->
+        <div id="search-result-wrapper" class="d-flex justify-content-center d-none">
+          <!-- 这是内容的主要容器，位于页面中央，占用 11 列宽度 -->
+          <div class="col-11 content">
+            <!-- search-hints 用于显示搜索提示或热门标签 -->
+            <div id="search-hints"></div>
+            <!-- search-results 是显示实际搜索结果的区域 -->
+            <div id="search-results" class="d-flex flex-wrap justify-content-center text-muted mt-3">
+               {#{% include "_includes/search-loader.html" %}#}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 返回顶部按钮 -->
+      <aside aria-label="Scroll to Top">
+        <button id="back-to-top" type="button" class="btn btn-lg btn-box-shadow">
+          <i class="fas fa-angle-up"></i>
+        </button>
+      </aside>
+    </div>
+  </body>
+</html>

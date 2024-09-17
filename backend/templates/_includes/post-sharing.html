@@ -1,0 +1,96 @@
+{% load blog_tags %}
+{% load static %}
+<div class="share-wrapper d-flex align-items-center">
+    <!-- 分享标签 -->
+    <span class="share-label text-muted">
+        <font style="vertical-align: inherit;">
+            <font style="vertical-align: inherit;">分享</font>
+        </font>
+    </span>
+
+    <span class="share-icons">
+        <!--生成分享平台的图标链接，替换掉标题和 URL-->
+        {% share_detail post_pk=post.pk %}
+        {% for share in share_platforms %}
+            <a href="{{ share.link }}"
+               target="_blank"
+               rel="noopener"
+               aria-label="{{ share.type }}"
+               data-bs-toggle="tooltip"
+               data-bs-placement="top"
+               data-bs-original-title="{{ share.type }}"
+            >
+                <i class="fa-fw {{ share.icon }}"></i>
+            </a>
+        {% endfor %}
+
+        <!-- 生成复制链接按钮 -->
+        <button id="copy-link"
+                aria-label="Copy link"
+                class="btn small"
+                data-bs-toggle="tooltip"
+                data-bs-placement="top"
+                data-bs-original-title="复制链接"
+                >
+            <i class="fa-fw fas fa-link pe-none fs-6"></i>
+        </button>
+    </span>
+</div>
+
+<!-- 分享按钮显示提示信息 -->
+<!--<script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.1.3/js/bootstrap.bundle.min.js"></script>-->
+<!--<script src="{% static 'assets/js/dist/tooltip-loader.js' %}"></script>-->
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // 获取所有 Tooltip 触发器元素
+        const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+
+        // 初始化所有 Tooltip
+        tooltipTriggerList.forEach(function (tooltipTriggerEl) {
+            // 确保 data-bs-original-title 属性存在且有效
+            const title = tooltipTriggerEl.getAttribute('data-bs-original-title') || '默认提示';
+
+            new bootstrap.Tooltip(tooltipTriggerEl, {
+                title: title, // 使用 data-bs-original-title 的值作为初始提示信息
+                placement: tooltipTriggerEl.getAttribute('data-bs-placement') || 'top'
+            });
+        });
+
+        // 处理复制按钮
+        const copyButton = document.getElementById('copy-link');
+        if (copyButton) {
+            const currentUrl = window.location.href; // 获取当前页面 URL
+
+            // 初始化 Tooltip
+            const copyButtonTooltip = new bootstrap.Tooltip(copyButton, {
+                title: copyButton.getAttribute('data-bs-original-title') || '默认提示', // 使用 data-bs-original-title 的值作为初始提示信息
+                placement: 'top'
+            });
+
+            copyButton.addEventListener('click', function() {
+                // 使用 Clipboard API 复制链接
+                navigator.clipboard.writeText(currentUrl).then(function() {
+                    // 更新提示信息为复制成功
+                    copyButton.setAttribute('data-bs-original-title', '链接复制成功!');
+                    copyButtonTooltip.update(); // 更新 Tooltip 内容
+                    copyButtonTooltip.show();
+
+                    // 自动隐藏提示
+                    setTimeout(() => {
+                        copyButtonTooltip.hide();
+                        // 恢复提示信息为原始内容
+                        copyButton.setAttribute('data-bs-original-title', '复制链接');
+                        copyButtonTooltip.update(); // 更新 Tooltip 内容
+                    }, 2000); // 2秒后恢复原始内容
+
+                }).catch(function(error) {
+                    console.error('Error copying text: ', error);
+                });
+            });
+        }
+    });
+</script>
+
+
+
+

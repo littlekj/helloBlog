@@ -22,7 +22,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = 'django-insecure-!txzg@7*-((*x+8@k@#z#++@*i19k-_$5@v&g^z%4t9cg_ub!b'
 
 import os
-from .base import *
+from .common import *
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
@@ -53,10 +53,13 @@ HAYSTACK_CONNECTIONS = {
         'INDEX_NAME': 'blog_index',
         'KWARGS': {
             'http_auth': ('elastic', 'elastic'),  # Elasticsearch 实际设置的用户名和密码
+            # 'timeout': 30,  # 将超时时间设置为 30 秒
             # 'use_ssl': True,
             # 'verify_certs': False,
             # 'ca_certs': '/path/to/ca.crt',
         },
+        'INCLUDE_SPELLING': True,  # 是否开启拼写检查
+        'DEFAULT_OPERATOR': 'AND',  # 默认的查询操作符，用于处理多个关键词的搜索
     },
 }
 
@@ -74,7 +77,10 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'blog.middleware.StoreLastURLMiddleware',  # 自定义中间件
 ]
+
+SESSION_ENGINE = 'django.contrib.sessions.backends.db'
 
 ROOT_URLCONF = 'backend.urls'
 
@@ -100,9 +106,27 @@ WSGI_APPLICATION = 'backend.wsgi.application'
 # https://docs.djangoproject.com/en/4.2/ref/settings/#databases
 
 DATABASES = {
+    # 'default': {
+    #     'ENGINE': 'django.db.backends.sqlite3',
+    #     'NAME': os.path.join(BASE_DIR, 'database', 'db.sqlite3'),
+    # }
+
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': os.path.join(BASE_DIR, 'database', 'db.sqlite3'),
+        # 数据库引擎配置
+        'ENGINE': 'django.db.backends.mysql',
+        # 数据库的名称
+        'NAME': 'blog',
+        # 数据库服务器的 IP 地址(如果是本机，可以配置成 localhost 或 127.0.0.1)
+        'HOST': '101.34.211.137',
+        # 启动 MySQL 服务的端口号
+        'PORT': 3306,
+        # 数据库用户名和口令
+        'USER': 'hellokitty',
+        'PASSWORD': 'qa0123456.',
+        # 数据库使用的字符集
+        'CHARSET': 'utf8mb4',
+        # 数据库时间日期的时区设定
+        'TIME_ZONE': 'Asia/Chongqing',
     }
 }
 
@@ -143,7 +167,10 @@ USE_TZ = True
 
 STATIC_URL = 'static/'
 
-STATIC_ROOT = os.path.join(BASE_DIR, 'static')
+# 指定额外的静态文件目录，通常是用于开发环境。
+STATICFILES_DIRS = [
+    BASE_DIR / "static",
+]
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/4.2/ref/settings/#default-auto-field

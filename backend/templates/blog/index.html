@@ -1,34 +1,71 @@
 {% extends 'base.html' %}
 
-{% block main %}
-    {% for post in post_list %}
-                    <article class="post post-{{ post.pk }}">
-                        <header class="entry-header">
-                            <h1 class="entry-title">
-                                <a href="{{ post.get_absolut_url }}">{{ post.title }}</a>
-                            </h1>
-                            <div class="entry-meta">
-                                <span class="post-category"><a href="{% url 'blog:category' post.category.pk  %}">{{ post.category.name }}</a></span>
-                                <span class="post-date"><a href="{% url 'blog:archive' post.created_time.year post.created_time.month %}"><time class="entry-date"
-                                                                          datetime="{{ post.created_time }}">{{ post.created_time }}</time></a></span>
-                                <span class="post-author"><a href="#">{{ post.author }}</a></span>
-                                <span class="comments-link"><a href="{{ post.get_absolute_url }}#comment-area">{{ post.comment_set.count }} 评论</a></span>
-                                <span class="views-count"><a href="{{ post.get_absolute_url }}">{{ post.views }} 阅读</a></span>
-                            </div>
-                        </header>
-                        <div class="entry-content clearfix">
-                            <p>{{ post.excerpt }}</p>
-                            <div class="read-more cl-effect-14">
-                                <a href="{{post.get_absolute_url}}" class="more-link">继续阅读 <span class="meta-nav">→</span></a>
-                            </div>
-                        </div>
-                    </article>
-                {% empty %}
-                    <div class="no-post">暂时还没有发布的文章</div>
-                {% endfor %}
+{% block content %}
 
-    {% include 'pagination/pagination.html' %}
+<div id="post-list" class="flex-grow-1 px-xl-1">
+  {% for post in post_list %}
+    <article class="card-wrapper card">
+      <!-- 链接到文章页面 -->
+      <a href="{{ post.get_absolute_url }}" class="post-preview row g-0 flex-md-row-reverse">
 
-{% endblock main %}
+      <!-- 卡片内容容器 -->
+        <div class="col-md-12">
+          <div class="card-body d-flex flex-column">
 
+            <!-- 文章标题 -->
+            <h1 class="card-title my-2 mt-md-0">{{ post.title }}</h1>
 
+            <!-- 文章内容简要 -->
+            <div class="card-text content mt-0 mb-3">
+              <p>{{ post.excerpt }}</p>
+            </div>
+
+            <!-- 文章元数据 -->
+            <div class="post-meta flex-grow-1 d-flex align-items-end">
+
+              <!-- 文章发布日期和分类 -->
+              <div class="me-auto">
+                <i class="far fa-calendar fa-fw me-1"></i>
+                {% if post.modified_time %}
+                  <time><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">{{ post.modified_time|date:'Y年m月d日' }}</font></font></time>
+                {% else %}
+                  <time><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">{{ post.created_time|date:'Y年m月d日' }}</font></font></time>
+                {% endif %}
+
+                {% if post.categories.all %}
+                  <i class="far fa-folder-open fa-fw me-1"></i>
+                  <span class="categories">
+                    {% for category in post.categories.all %}
+                      {{ category.name }}
+                      {% if not forloop.last %},{% endif %}
+                    {% endfor %}
+                  </span>
+                {% endif %}
+              </div>
+
+              <!-- 如果文章是置顶的，使用置顶图标 -->
+              {% if post.pin %}
+                <div class="pin ms-1">
+                  <i class="fas fa-thumbtack fa-fw"></i>
+                  <span></span> <!-- 空的 span 可能用于未来的内容 -->
+                </div>
+              {% endif %}
+            </div>
+          </div>
+        </div>
+      </a>
+    </article>
+  {% endfor %}
+</div>
+
+{% comment %}
+page_obj 是 Django 的内置分页器对象，表示分页结果的当前页对象
+通常在视图中通过 Paginator 或 ListView 自动生成并传递到模板
+{% endcomment %}
+
+<!-- 如果有多页文章，显示分页组件 -->
+{% if page_obj.has_other_pages %}
+  {% include '_includes/post-paginator.html' %}
+{% endif %}
+
+{% endblock %}
