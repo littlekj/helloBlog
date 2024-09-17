@@ -16512,7 +16512,7 @@ header h1 + .post-meta, header .h1 + .post-meta {
 /*
   Styles for Tab Tags
 */
-.tag {
+#tags .tag {
   border-radius: 0.7em;
   padding: 6px 8px 7px;
   margin-right: 0.8rem;
@@ -16522,7 +16522,7 @@ header h1 + .post-meta, header .h1 + .post-meta {
   -webkit-box-shadow: 0 0 3px 0 var(--tag-shadow);
           box-shadow: 0 0 3px 0 var(--tag-shadow);
 }
-.tag span {
+#tags .tag span {
   margin-left: 0.6em;
   font-size: 0.7em;
   font-family: Oswald, sans-serif;

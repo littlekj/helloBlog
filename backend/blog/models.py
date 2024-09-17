@@ -132,16 +132,9 @@ class Post(models.Model):
         return self.title
 
     def save(self, *args, **kwargs):
-
-        # 获取 update_fields 的值
-        update_fields = kwargs.get('update_fields', [])
-
-        # 如果模型存在主键且 update_fields 中不包含 'views' 和 'pin' 字段
-        # 不属于文章本身的内容修改，不应该更新 modified_time 字段
-        # if self.pk and ('views' not in update_field) and ('pin' not in update_field):
-        if self.pk and (not {'views', 'pin'}.intersection(update_fields)):  # 使用集合的交集判断
-            # 更新 modified_time，因为其他字段正在被更新
-            self.modified_time = timezone.now()
+        # 如果对象没有保存过（即没有主键），先保存一次让 Django自动生成主键
+        if not self.pk:
+            super().save(*args, **kwargs)  # 第一次保存，获取 pk
 
         # 生成摘要
         md = MarkdownIt()
@@ -154,12 +147,21 @@ class Post(models.Model):
         if not self.slug:
             # self.slug = slugify(unidecode(self.title), allow_unicode=True)
 
-            # 自动生成当前对象的 URL 名称
+            # 自动生成 slug
             day = str(self.created_time.day).lstrip('0')
             month = str(self.created_time.month).lstrip('0')
             year = str(self.created_time.year)[-2:]  # 只取年份的最后两位
             self.slug = f"{day}{month}{year}{self.pk}"
 
+        # 获取 update_fields 的值
+        update_fields = kwargs.get('update_fields', [])
+        # 如果模型存在主键且 views 和 pin 字段不在 update_fields 中，则更新 modified_time 字段
+        # 因为如果有不属于文章本身的内容修改，不应该更新 modified_time 字段
+        if self.pk and (not {'views', 'pin'}.intersection(update_fields)):  # 使用集合的交集判断
+            # 更新 modified_time，因为其他字段正在被更新
+            self.modified_time = timezone.now()
+
+        # 再次保存，确保生成的 slug 被存储
         super().save(*args, **kwargs)
 
     def get_absolute_url(self):

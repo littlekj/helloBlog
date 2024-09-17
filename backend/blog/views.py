@@ -116,9 +116,10 @@ class PostDetailView(BreadcrumbMixin, DetailView):
         # print("post.toc:", post.toc)
 
         post.body = md.render(post.body)
+        # print("post.id:", post.id)
 
         # Prism.js 添加类异常，为代码块添加行号类
-        post.body = post.body.replace('<pre><code', '<pre class="line-numbers"><code')
+        # post.body = post.body.replace('<pre><code', '<pre class="line-numbers"><code')
 
         # 将处理后的 post 对象传递给模板
         context['post'] = post
@@ -138,13 +139,9 @@ class PostDetailView(BreadcrumbMixin, DetailView):
             "description": post.title,  # 评论的描述
             "backLink": self.request.build_absolute_uri()  # 返回链接
         }
+        # 将 Giscus 小部件相关的变量添加到上下文中
+        context['giscus_src'] = giscus_src
 
-        context = {
-            'post': post,
-            'giscus_src': giscus_src
-        }
-
-        # print("context['giscus_src']", context['giscus_src'])
         return context
 
     def get_breadcrumbs(self):
