@@ -25,10 +25,12 @@
     <button type="button" id="sidebar-trigger" class="btn btn-link">
       <i class="fas fa-bars fa-fw"></i>
     </button>
-
     <!-- 顶部栏标题 -->
-    <div id="topbar-title">Quill</div>
-
+    {% if breadcrumbs_mobile %}
+    {% for name in breadcrumbs_mobile %}
+    <div id="topbar-title">{{ name }}</div>
+    {% endfor %}
+    {% endif %}
     <!-- 搜索触发按钮 -->
     <button type="button" id="search-trigger" class="btn btn-link">
       <i class="fas fa-search fa-fw"></i>

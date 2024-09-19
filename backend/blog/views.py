@@ -48,9 +48,13 @@ class BreadcrumbMixin:
     def get_breadcrumbs(self):
         return []
 
+    def get_breadcrumbs_mobile(self):
+        return []
+
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context['breadcrumbs'] = self.get_breadcrumbs()
+        context['breadcrumbs_mobile'] = self.get_breadcrumbs_mobile()
         return context
 
 
@@ -88,6 +92,9 @@ class IndexView(BreadcrumbMixin, ListView):
         return [
             ('首页', '/'),
         ]
+
+    def get_breadcrumbs_mobile(self):
+        return ['首页']
 
 
 class PostDetailView(BreadcrumbMixin, DetailView):
@@ -150,6 +157,9 @@ class PostDetailView(BreadcrumbMixin, DetailView):
             (self.object.title, self.object.get_absolute_url()),
         ]
 
+    def get_breadcrumbs_mobile(self):
+        return ['文章']
+
 
 class CategoryListView(BreadcrumbMixin, ListView):
     model = Category
@@ -167,6 +177,9 @@ class CategoryListView(BreadcrumbMixin, ListView):
             ('首页', '/'),
             ('分类', '/categories/'),
         ]
+
+    def get_breadcrumbs_mobile(self):
+        return ['分类']
 
 
 class CategoryDetailView(BreadcrumbMixin, ListView):
@@ -196,6 +209,9 @@ class CategoryDetailView(BreadcrumbMixin, ListView):
             (self.selected_category, self.selected_category.get_absolute_url()),
         ]
 
+    def get_breadcrumbs_mobile(self):
+        return ['类别']
+
 
 class TagListView(BreadcrumbMixin, ListView):
     model = Tag
@@ -213,6 +229,9 @@ class TagListView(BreadcrumbMixin, ListView):
             ('首页', '/'),
             ('标签', '/tags/'),
         ]
+
+    def get_breadcrumbs_mobile(self):
+        return ['标签']
 
 
 class TagDetailView(BreadcrumbMixin, ListView):
@@ -243,6 +262,9 @@ class TagDetailView(BreadcrumbMixin, ListView):
             ('标签', '/tags/'),
             (self.selected_tag.name, self.selected_tag.get_absolute_url()),
         ]
+
+    def get_breadcrumbs_mobile(self):
+        return ['标签']
 
 
 # def archive(request, year, month):
@@ -291,6 +313,9 @@ class ArchiveView(BreadcrumbMixin, ListView):
             ('归档', '/archives/'),
         ]
 
+    def get_breadcrumbs_mobile(self):
+        return ['归档']
+
 
 class AboutView(BreadcrumbMixin, TemplateView):
     template_name = 'blog/about.html'
@@ -300,6 +325,9 @@ class AboutView(BreadcrumbMixin, TemplateView):
             ('首页', '/'),
             ('关于', '/about/'),
         ]
+
+    def get_breadcrumbs_mobile(self):
+        return ['关于']
 
 
 # def search(request):
@@ -330,7 +358,7 @@ def search(request):
     # sqs = SearchQuerySet().filter(content__exact=query).highlight()  # content_exact 表示精确匹配
 
     # 使用 Django 的分页器创建分页对象，假设每页显示 10 条结果
-    paginator = Paginator(sqs, 16)
+    paginator = Paginator(sqs, 10)
 
     try:
         page = paginator.page(page_number)  # 返回从给定页码的 Page 对象数据
