@@ -1,6 +1,5 @@
 <nav aria-label="Page Navigation">
   <ul class="pagination align-items-center mt-4 mb-0">
-
     <!-- 左箭头 -->
     {% if page_obj.has_previous %}
       <li class="page-item">
@@ -15,7 +14,6 @@
         </a>
       </li>
     {% endif %}
-
     <!-- 如果当前页码大于3，显示第一页和省略号 -->
     {% if page_obj.number > 3 %}
       <li class="page-item">
@@ -36,7 +34,6 @@
         </li>
       {% endif %}
     {% endfor %}
-
 
     <!-- 如果当前页码小于倒数第3页，显示最后一页 -->
     <!-- 如果当前页码小于倒数第4页，显示省略号 -->
@@ -65,13 +62,6 @@
         </a>
       </li>
     {% endif %}
-
-    <!-- 移动设备的分页显示 - 当前页和总页数 -->
-    <li class="page-index align-middle">
-      <span>{{ page_obj.number }}</span>
-      <span class="text-muted">/ {{ page_obj.paginator.num_pages }}</span>
-    </li>
   </ul>
-
-
 </nav>
+

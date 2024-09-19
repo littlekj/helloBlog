@@ -59,7 +59,20 @@ def show_trending_tags(context, num=10):
 
     # 获取所有标签并按管理文章数排序，限制为前10个
     tags = Tag.objects.annotate(num_posts=Count('post')).filter(num_posts__gt=0).order_by('-num_posts')[:num]
+    return {
+        'trending_tags': tags
+    }
 
+
+@register.inclusion_tag('_includes/trending-content.html', takes_context=True)
+def show_trending_content(context, num=10):
+    """
+    显示文章的热门标签
+    :param context(dict): 模板上下文
+    """
+
+    # 获取所有标签并按管理文章数排序，限制为前10个
+    tags = Tag.objects.annotate(num_posts=Count('post')).filter(num_posts__gt=0).order_by('-num_posts')[:num]
     return {
         'trending_tags': tags
     }
