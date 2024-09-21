@@ -19,7 +19,7 @@ from haystack.query import SearchQuerySet
 from haystack.inputs import AutoQuery
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from django.template.loader import render_to_string
-from blog.utils import standardize_highlight
+from blog.utils import standardize_highlight, highlightTextFirstPart_whether_title
 
 from django.db.models import Count
 from django.db.models.functions import Coalesce, ExtractYear, TruncYear
@@ -374,6 +374,8 @@ class AboutView(BreadcrumbMixin, TemplateView):
 #     # 渲染模板，并将搜索结果传递给模板
 #     return render(request, 'blog/index.html', {'post_list': post_list})
 
+from haystack.inputs import Exact
+
 
 def search(request):
     # 从请求中获取查询参数 q，如果没有提供，则默认为空字符串
@@ -382,7 +384,8 @@ def search(request):
     page_number = request.GET.get('page', 1)
 
     # sqs = SearchQuerySet().filter(content=query).highlight()
-    sqs = SearchQuerySet().filter(content__exact=query).highlight()  # content_exact 表示精确匹配
+    # sqs = SearchQuerySet().filter(content__exact=query).highlight()  # content_exact 表示精确匹配，要求索引中的内容完全等于关键词，过于严格
+    sqs = SearchQuerySet().filter(content=Exact(query)).highlight()  # 整个关键词作为单一的短语进行匹配，而不会分词
 
     # 使用 Django 的分页器创建分页对象，假设每页显示 10 条结果
     paginator = Paginator(sqs, 10)
@@ -405,17 +408,19 @@ def search(request):
         'url': result.object.get_absolute_url(),
         'title': (
             result.highlighted[0].split('\n')[0]
-            if (result.highlighted and (query in result.object.title))
+            # if (result.highlighted and (query in result.object.title))
+            if highlightTextFirstPart_whether_title(result.highlighted, result.object.title)
             else result.object.title
         ),
         'categories': ', '.join([category.name for category in result.object.categories.all()]),
         'tags': ', '.join([tag.name for tag in result.object.tags.all()]),
         'snippet': (
             standardize_highlight(result.highlighted[0].split('\n')[1:])  # 高亮内容匹配标题的情况
-            if result.highlighted and (query in result.object.title)
+            # if result.highlighted and (query in result.object.title)
+            if highlightTextFirstPart_whether_title(result.highlighted, result.object.title)
             else (
                 standardize_highlight(result.highlighted[0])  # 高亮内容不匹配标题的情况
-                if result.highlighted and (query in result.object.title)
+                if result.highlighted
                 else standardize_highlight(result.object.body[:150])  # 没有高亮内容时，返回正文前150个字符
             )
         )

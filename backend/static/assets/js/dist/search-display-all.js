@@ -47,18 +47,15 @@ class MobileSearchBar {
 
 // 发送 Ajax 请求获取特定页的数据
 function fetchResults(query, page) {
-    console.log('Fetching results for query:', query);  // 添加调试
-    console.log('Fetching results for page:', page);
+//    console.log('Fetching results for query:', query);  // 添加调试
     fetch(`/search/?q=${encodeURIComponent(query)}&page=${page}`, {
         headers: { 'X-Requested-With': 'XMLHttpRequest' }
     })
     .then(response => response.json())
     .then(data => {
-        console.log('query:', query); 
-        console.log('Search data:', data.results);  // 打印数据
+//        console.log('Search data:', data.results);  // 打印数据
         if (data.results && data.results.length > 0) {  // 空数组 [] 在 JavaScript 中被视为 truthy 值，所以需要检查长度
             results.innerHTML = data.results_html;  // 显示当前页数据及更新分页链接
-            console.log('Search results:', results);  // 添加调试
             ResultSwitch.on();
         } else {
             // 没有结果时显示提示信息
