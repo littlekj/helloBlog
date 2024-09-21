@@ -201,6 +201,26 @@ class CustomHighlighter(Highlighter):
         return self.render_html(highlight_locations, start_offset, end_offset)
 
 
+def highlightTextFirstPart_whether_title(highlightText, title):
+    """
+    判断高亮的第一部分是否是标题，如果是，标题使用高亮的第一部分，如果不是，直接返回标题。
+    不使用搜索词是否在标题中的判断，因为搜索词可能在标题中，但返回的高亮部分可能在标题之外。
+    :param highlightText: 高亮文本
+    :param title: 标题
+    """
+    # 获取高亮文本的第一部分
+    highlightTextFirstPart = highlightText[0].split('\n')[0]
+
+    # 去除高亮文本中的 HTML 标签 <em> 和 </em>
+    cleanedHighlightTextFirstPart = re.sub(r'</?em>', '', highlightTextFirstPart)
+
+    # 判断高亮文本的第一部分是否是标题
+    if cleanedHighlightTextFirstPart == title:
+        return True
+    else:
+        return False
+
+
 def standardize_highlight(highlighted):
     """
     Elasticsearch 查询字段可能会返回不同的数据类型，如字符串或字符串列表。
