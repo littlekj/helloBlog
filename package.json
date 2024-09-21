@@ -1,0 +1,8 @@
+{
+  "devDependencies": {
+    "postcss-cli": "^11.0.0"
+  },
+  "scripts": {
+    "build": "postcss backend/static/assets/css/jekyll-theme-chirpy.css -o backend/static/assets/css/jekyll-theme-chirpy.min.css"
+  }
+}
