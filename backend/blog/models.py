@@ -5,6 +5,10 @@ from django.urls import reverse
 from django.utils.text import slugify
 from markdown_it import MarkdownIt
 from blog.utils import generate_summary
+from django.db.models import F
+
+from blog.utils import generate_toc, replace_markdown_symbols, slugify
+from mdit_py_plugins.anchors import anchors_plugin
 
 
 # Create your models here.
@@ -87,7 +91,7 @@ class Post(models.Model):
     # slug 是一个 URL 友好的字符串，用于在 URL 中表示文章
     # blank=True：在 Django 的表单或后台中，slug 字段可以为空。
     # null=True：在数据库中，slug 字段可以存储 NULL 值。
-    slug = models.SlugField('slug(可选)', max_length=100, unique=True, blank=True, null=True)
+    slug = models.SlugField('slug', max_length=100, unique=True, blank=True, null=True)
 
     # 文章正文，使用 TextField 模型字段
     body = models.TextField('正文')
@@ -123,6 +127,9 @@ class Post(models.Model):
     # 新增一个字段，用于存储文章是否置顶
     pin = models.BooleanField(default=False)
 
+    # 新增一个字段，用于存储文章渲染后的正文内容
+    rendered_body = models.TextField(editable=False, blank=True)
+
     class Meta:
         verbose_name = '文章'
         verbose_name_plural = verbose_name
@@ -133,7 +140,7 @@ class Post(models.Model):
 
     def save(self, *args, **kwargs):
         # 如果对象没有保存过（即没有主键），先保存一次让 Django自动生成主键
-        if not self.pk:
+        if not self.pk or not self.body:
             super().save(*args, **kwargs)  # 第一次保存，获取 pk
 
         # 生成摘要
@@ -161,8 +168,11 @@ class Post(models.Model):
             # 更新 modified_time，因为其他字段正在被更新
             self.modified_time = timezone.now()
 
-        # 再次保存，确保生成的 slug 被存储
+        # 在保存之前生成并缓存 Markdown 渲染后的正文内容
+        if self.body:
+            self.rendered_body = self.render_markdown(self.body)
         super().save(*args, **kwargs)
+        self.refresh_from_db()  # 重新加载模型实例的状态
 
     def get_absolute_url(self):
         """
@@ -177,5 +187,25 @@ class Post(models.Model):
         """
         增加文章浏览量
         """
-        self.views += 1
+        # self.views += 1
+        self.views = F('views') + 1  # 使用 F() 表达式避免读-写竞争问题
         self.save(update_fields=['views'])
+
+    def render_markdown(self, body):
+
+        # 替换 Markdown 标题中的特殊符号
+        body = replace_markdown_symbols(body)
+
+        # 缓存渲染的 Markdown 内容
+        md = MarkdownIt('gfm-like').use(
+            anchors_plugin,
+            min_level=2,
+            max_level=4,
+            slug_func=slugify,
+            permalink=True,
+            permalinkSymbol='',
+            permalinkBefore=False,
+            permalinkSpace=True
+        )
+
+        return md.render(body)

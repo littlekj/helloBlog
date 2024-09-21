@@ -21,10 +21,14 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.1.3/js/bootstrap.bundle.min.js"></script>
 
 <!-- 引入 Prism.js 核心库 -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/autoloader/prism-autoloader.min.js"></script>
+<!--<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>-->
+<!--<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/autoloader/prism-autoloader.min.js"></script>-->
 <!-- 引入行号插件的 JS -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/line-numbers/prism-line-numbers.min.js"></script>
+<!--<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/line-numbers/prism-line-numbers.min.js"></script>-->
+
+<script src="{% static 'assets/js/prism/prism.min.js' %}"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/autoloader/prism-autoloader.min.js"></script>
+<script src="{% static 'assets/js/prism/prism-line-numbers.min.js' %}"></script>
 <!--动态添加 line-numbers 类-->
 <script>
     document.querySelectorAll('pre code').forEach((block) => {
@@ -45,18 +49,24 @@
         fontCache: 'global'
       }
     };
-    <!-- 异步加载 MathJax 脚本，一个用于渲染数学公式的 JavaScript 库-->
 </script>
+<!-- 异步加载 MathJax 脚本，一个用于渲染数学公式的 JavaScript 库-->
 <script async id="MathJax-script" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js"></script>
 
 <!--切换主题模式-->
 <script src="{% static 'assets/js/dist/switch-theme.js' %}"></script>
 
-<!--<script src="{% static 'assets/js/dist/tooltip-loader.js' %}"></script>-->
+<!--返回顶部-->
 <script src="{% static 'assets/js/dist/back-to-top.js' %}"></script>
 
 <!--侧边栏显示状态切换-->
 <script type="module" src="{% static 'assets/js/dist/sidebar.js' %}"></script>
+
+<!--粘贴板复制-->
+<script src="{% static 'assets/js/dist/clipboard.min.js' %}"></script>
+<!--document.addEventListener('DOMContentLoaded', function() {-->
+<!--    var clipboard = new ClipboardJS('.btn');-->
+<!--});-->
 
 {% comment %}
 <!-- 非首页的页面（比如文章和单页）加载图片懒加载、弹出框和剪贴板功能 -->

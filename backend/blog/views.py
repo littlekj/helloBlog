@@ -102,6 +102,11 @@ class PostDetailView(BreadcrumbMixin, DetailView):
     template_name = 'blog/post.html'
     context_object_name = 'post'
 
+    def get_object(self, queryset=None):
+        # 优化查询，关联外键字段
+        queryset = Post.objects.select_related('author').prefetch_related('categories', 'tags')
+        return get_object_or_404(queryset, slug=self.kwargs.get('slug'))
+
     # 生成渲染模板时需要的上下文数据
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)  # 返回包含上下文数据的的字典
@@ -113,17 +118,34 @@ class PostDetailView(BreadcrumbMixin, DetailView):
         # 替换 Markdown 标题中的特殊符号
         post.body = replace_markdown_symbols(post.body)
 
-        # 渲染 Markdown 内容
-        md = MarkdownIt('gfm-like')
-        md.use(anchors_plugin, min_level=2, max_level=4, slug_func=slugify,
-               permalink=True, permalinkSymbol='', permalinkBefore=False, permalinkSpace=True)
+        # 创建 MarkdownIt 实例
+        md = MarkdownIt('gfm-like').use(
+            anchors_plugin,
+            min_level=2,
+            max_level=4,
+            slug_func=slugify,
+            permalink=True,
+            permalinkSymbol='',
+            permalinkBefore=False,
+            permalinkSpace=True
+        )
 
         # 生成目录
         post.toc = generate_toc(md, post.body)
         # print("post.toc:", post.toc)
 
-        post.body = md.render(post.body)
-        # print("post.id:", post.id)
+        # 无缓存使用原始的正文渲染内容
+        if not post.rendered_body:
+            rendered_body = md.render(post.body)
+            post.rendered_body = rendered_body
+            post.save(update_fields=['rendered_body'])  # 保存更改到数据库
+            post.refresh_from_db()  # 刷新数据库中的数据，避免 Django 缓存之前的对象状态
+
+        # md.render(post.body) 虽然已渲染，但数据库数据Django同步最新，post.body 变成了未渲染的状态
+        # 所以，统一使用 rendered_body 属性来获取渲染后的内容
+
+        # 使用缓存的渲染内容
+        post.body = post.rendered_body
 
         # Prism.js 添加类异常，为代码块添加行号类
         # post.body = post.body.replace('<pre><code', '<pre class="line-numbers"><code')
@@ -192,7 +214,9 @@ class CategoryDetailView(BreadcrumbMixin, ListView):
         if category_slug:
             selected_category = get_object_or_404(Category, slug=category_slug)
             self.selected_category = selected_category  # 将分类实例保存在视图实例中
-            return Post.objects.filter(categories=selected_category)  # 获取该分类下的所有文章
+            # return Post.objects.filter(categories=selected_category)  # 获取该分类下的所有文章
+            # 使用 select_related 和prefetch_related 来预加载相关对象，提高查询效率
+            return Post.objects.filter(categories=selected_category).select_related('author').prefetch_related('tags')
 
         return Post.objects.none()  # 如果没有分类，返回空的文章列表
 
@@ -210,7 +234,7 @@ class CategoryDetailView(BreadcrumbMixin, ListView):
         ]
 
     def get_breadcrumbs_mobile(self):
-        return ['类别']
+        return ['分类']
 
 
 class TagListView(BreadcrumbMixin, ListView):
@@ -245,7 +269,9 @@ class TagDetailView(BreadcrumbMixin, ListView):
         if tag_slug:
             selected_tag = get_object_or_404(Tag, slug=tag_slug)
             self.selected_tag = selected_tag  # 将标签实例保存在视图实例中
-            post_list = super(TagDetailView, self).get_queryset().filter(tags=selected_tag).order_by('-created_time')
+            # post_list = super(TagDetailView, self).get_queryset().filter(tags=selected_tag).order_by('-created_time')
+            post_list = super(TagDetailView, self).get_queryset().filter(tags=selected_tag).select_related(
+                'author').prefetch_related('categories').order_by('-created_time')
             if not post_list.exists():
                 messages.info(self.request, '没有找到与此标签相关的文章')
             return post_list
@@ -294,6 +320,7 @@ class ArchiveView(BreadcrumbMixin, ListView):
         posts = super(ArchiveView, self).get_queryset().annotate(
             year=ExtractYear(Coalesce('modified_time', 'created_time')),
         ).order_by('-year', Coalesce('modified_time', 'created_time').desc())
+
         # print("str(posts.query)", str(posts.query))
 
         # 按年份分组
@@ -354,8 +381,8 @@ def search(request):
     # 从请求中获取当前页码，如果没有提供页码，默认设置为 1
     page_number = request.GET.get('page', 1)
 
-    sqs = SearchQuerySet().filter(content=query).highlight()
-    # sqs = SearchQuerySet().filter(content__exact=query).highlight()  # content_exact 表示精确匹配
+    # sqs = SearchQuerySet().filter(content=query).highlight()
+    sqs = SearchQuerySet().filter(content__exact=query).highlight()  # content_exact 表示精确匹配
 
     # 使用 Django 的分页器创建分页对象，假设每页显示 10 条结果
     paginator = Paginator(sqs, 10)

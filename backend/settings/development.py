@@ -78,6 +78,7 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'blog.middleware.StoreLastURLMiddleware',  # 自定义中间件
+    # 'whitenoise.middleware.WhiteNoiseMiddleware',  # WhiteNoise 中间件
 ]
 
 SESSION_ENGINE = 'django.contrib.sessions.backends.db'
@@ -171,6 +172,13 @@ STATIC_URL = 'static/'
 STATICFILES_DIRS = [
     BASE_DIR / "static",
 ]
+
+# STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
+#
+# # 启用 WhiteNoise 压缩（如 gzip）和缓存
+# STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
+# # 设置浏览器缓存控制头，避免每次请求都下载静态文件
+# WHITENOISE_MAX_AGE = 31536000  # 缓存时间为一年
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/4.2/ref/settings/#default-auto-field

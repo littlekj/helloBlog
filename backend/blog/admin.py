@@ -14,6 +14,8 @@ class PostAdmin(admin.ModelAdmin):
     # 定义在后台文章编辑页面中显示的字段
     fields = ['title', 'slug', 'body', 'excerpt', 'categories', 'tags']
 
+    readonly_fields = ('rendered_body',)  # 不可编辑字段设置为只读以便显示
+
     def get_categories(self, obj):
         """
         自定义方法，用于在后台页面列表显示文章的分类信息，逗号分隔

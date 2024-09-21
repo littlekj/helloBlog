@@ -29,9 +29,7 @@
 <!--实现平滑滚动，高亮当前目录项-->
 <script src="https://cdn.jsdelivr.net/npm/tocbot@4.29.0/dist/tocbot.min.js"></script>
 
-<!--  引入相关的js文件，以便在页面加载时执行相应的功能。-->
-<!--避免放置基础模板中，有全局变量冲突，只需要在文章页面加载时执行。-->
-<script defer src="{% static 'assets/js/post.min.js' %}"></script>
+
 
 <!--将 h2, h3, h4 等标题标签的内容转换成指定的格式以便修饰-->
 <script>
@@ -65,7 +63,4 @@
             }
         });
     });
-
-
-
 </script>

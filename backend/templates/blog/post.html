@@ -2,7 +2,8 @@
 {% load static %}
 
 {% block content %}
-  <article class="px-1">
+
+<article class="px-1">
     <header>
       <!-- 文章标题 -->
       <h1 data-toc-skip>{{ post.title }}</h1>
@@ -109,6 +110,123 @@
       </div>
     </div>
   </article>
+
+<!--  引入相关的js文件，以便在页面加载时执行相应的功能。-->
+<!--避免放置基础模板中，有全局变量冲突，只需要在文章页面加载时执行。-->
+<script defer src="{% static 'assets/js/post.min.js' %}"></script>
+
+<script>
+  // 初始化 ClipboardJS
+  document.addEventListener('DOMContentLoaded', function () {
+    // 使用 setTimeout 延时执行，以确保所有的类已被正确添加
+    setTimeout(function() {
+      // 选择所有带有 `line-numbers` 类的 <pre> 元素
+      const preAll = document.querySelectorAll('pre.line-numbers');
+
+      // 遍历每个 <pre> 元素
+      preAll.forEach((preElement) => {
+        // 从 classList 中筛选出以 "language-" 开头的类（比如：language-js, language-python）
+        const languageClasses = Array.from(preElement.classList).filter(cls => cls.startsWith("language-"));
+
+        // 如果存在语言类（即 languageClasses 长度大于 0）
+        if (languageClasses.length > 0) {
+          // 创建一个新的按钮元素
+          const copyButton = document.createElement('button');
+
+          // 设置按钮的 class 名，便于样式控制
+          copyButton.className = 'copy-button';
+          // 设置按钮的文本为 "复制"
+          copyButton.innerText = '复制';
+
+          // 为了定位复制按钮，将 <pre> 元素的样式设为 `relative`
+          preElement.style.position = 'relative';
+          // 将复制按钮添加到 <pre> 元素中
+          preElement.appendChild(copyButton);
+
+          // 获取 <code> 元素，包含代码内容
+          var codeBlock = preElement.querySelector('code');
+          if (codeBlock) {
+            // 如果找到 <code> 元素，设置按钮的 `data-clipboard-text` 为该代码块的文本
+            copyButton.setAttribute('data-clipboard-text', codeBlock.innerText);
+          } else {
+            // 如果没有找到 <code> 元素，输出警告
+            console.warn('没有找到代码块', preElement);
+          }
+        }
+      });
+    }, 100);  // 延时 100 毫秒，确保动态类已附加
+
+    // 初始化 ClipboardJS，并将其绑定到所有带有 `copy-button` 类的按钮上
+    var clipboard = new ClipboardJS('.copy-button');
+
+    // 处理复制成功事件
+    clipboard.on('success', function (e) {
+      // 获取当前触发事件的按钮
+      var button = e.trigger;
+      // 将按钮文本设置为 "已复制" 并添加 `success` 样式类
+      button.innerText = '已复制';
+      button.classList.add('success');
+
+      // 2 秒后恢复按钮的文本及样式
+      setTimeout(function () {
+        button.innerText = '复制';
+        button.classList.remove('success');
+      }, 2000);
+
+      // 清除选择的文本
+      e.clearSelection();
+    });
+
+    // 处理复制失败事件
+    clipboard.on('error', function (e) {
+      // 获取当前触发事件的按钮
+      var button = e.trigger;
+      // 将按钮文本设置为 "复制失败" 并添加 `error` 样式类
+      button.innerText = '复制失败';
+      button.classList.add('error');
+
+      // 2 秒后恢复按钮的文本及样式
+      setTimeout(function () {
+        button.innerText = '复制';
+        button.classList.remove('error');
+      }, 2000);
+
+      // 打印错误信息，便于调试
+      console.error('复制失败', e);
+    });
+  });
+</script>
+
+
+<style>
+   .copy-button {
+      position: absolute;
+      right: 5px;
+      top: 4px;
+      background-color: white;
+      font-size: 0.8rem;
+      color: #757575;
+      border: 0 solid #e3e3e3;
+      min-width: 3rem;
+      padding: 2px 3px;
+      cursor: pointer;
+      border-radius: 3px;
+      z-index: 1000;
+      display: inline-block;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+  }
+
+  .copy-button.success {
+    color: #669900; /* 绿色表示成功 */
+  }
+
+  .copy-button.error {
+    color: #DD4A68;  /* 红色表示失败 */
+  }
+</style>
+
 {% endblock %}
 
 {% block toc %}
@@ -118,4 +236,3 @@
 {% block comments %}
   {% include '_includes/comments.html' %}
 {% endblock %}
-

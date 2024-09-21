@@ -61,17 +61,17 @@
     <title>{{ meta.title }}</title>
 
     <!-- 设置不同平台的图标 -->
-    <link href="/assets/img/favicons/apple-touch-icon.png" rel="apple-touch-icon" sizes="180x180">
-    <link href="/assets/img/favicons/favicon-32x32.png" rel="icon" sizes="32x32" type="image/png">
-    <link href="/assets/img/favicons/favicon-16x16.png" rel="icon" sizes="16x16" type="image/png">
-    <link href="/assets/img/favicons/site.webmanifest" rel="manifest">
-    <link href="/assets/img/favicons/favicon.ico" rel="shortcut icon">
+    <link href="{% static 'assets/img/favicons/apple-touch-icon.png' %}" rel="apple-touch-icon" sizes="180x180">
+    <link href="{% static 'assets/img/favicons/favicon-32x32.png' %}" rel="icon" sizes="32x32" type="image/png">
+    <link href="{% static 'assets/img/favicons/favicon-16x16.png' %}" rel="icon" sizes="16x16" type="image/png">
+    <link href="{% static 'assets/img/favicons/site.webmanifest' %}" rel="manifest">
+    <link href="{% static 'assets/img/favicons/favicon.ico' %}" rel="shortcut icon">
 
     <!-- 设置 iOS 设备上的应用标题和 Windows 设备上的瓷砖颜色 -->
     <meta content="Quill" name="apple-mobile-web-app-title">
     <meta content="Quill" name="application-name">
     <meta content="#da532c" name="msapplication-TileColor">
-    <meta content="/assets/img/favicons/browserconfig.xml" name="msapplication-config">
+    <meta content="{% static 'assets/img/favicons/browserconfig.xml' %}" name="msapplication-config">
 
     <!-- 另一个主题颜色设置 -->
     <meta content="#ffffff" name="theme-color">
@@ -86,7 +86,7 @@
 
     <!-- 引入样式表 -->
     <!--  <link rel="stylesheet" type="text/css" href="{% static 'assets/css/bootstrap.min.css' %}">-->
-    <link href="{% static 'assets/css/jekyll-theme-chirpy.css' %}" rel="stylesheet" type="text/css">
+    <link href="{% static 'assets/css/jekyll-theme-chirpy.min.css' %}" rel="stylesheet" type="text/css">
     <link href="{% static 'assets/css/custom-style.css' %}" rel="stylesheet" type="text/css">
     <link href="https://fonts.googleapis.com/css2?family=Lato:wght@300;400&family=Source+Sans+Pro:wght@400;600;700;900&display=swap"
           rel="stylesheet">

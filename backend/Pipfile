@@ -16,6 +16,7 @@ faker = "*"
 django-haystack = "*"
 elasticsearch = "<8,>=7"
 mysqlclient = "*"
+whitenoise = "*"
 
 [dev-packages]
 
