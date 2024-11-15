@@ -4,11 +4,8 @@ from django.utils import timezone
 from django.urls import reverse
 from django.utils.text import slugify
 from markdown_it import MarkdownIt
-from blog.utils import generate_summary
+from blog.utils import generate_summary, custom_slugify
 from django.db.models import F
-
-from blog.utils import generate_toc, replace_markdown_symbols, slugify
-from mdit_py_plugins.anchors import anchors_plugin
 
 
 # Create your models here.
@@ -139,40 +136,36 @@ class Post(models.Model):
         return self.title
 
     def save(self, *args, **kwargs):
-        # 如果对象没有保存过（即没有主键），先保存一次让 Django自动生成主键
-        if not self.pk or not self.body:
-            super().save(*args, **kwargs)  # 第一次保存，获取 pk
+        # 如果主键 pk 不存在，则首先保存以生成 pk
+        if not self.pk:
+            super().save(*args, **kwargs)
+            if not self.slug:
+                self.slug = self.generate_slug()
+                self.save(update_fields=['slug'])
+            return
 
-        # 生成摘要
-        md = MarkdownIt()
-        html = md.render(self.body)
-        self.excerpt = generate_summary(html, 120)
-
-        # 默认的 slugify 函数会将字符串中的非字母数字字符替换为短横线（-），并且会将多个短横线合并为一个。
-        # 指定参数 allow_unicode=True，允许使用 Unicode 字符。
-        # 使用 unidecode 将中文转成拼音或自定义 slugify 处理中文。
-        if not self.slug:
-            # self.slug = slugify(unidecode(self.title), allow_unicode=True)
-
-            # 自动生成 slug
-            day = str(self.created_time.day).lstrip('0')
-            month = str(self.created_time.month).lstrip('0')
-            year = str(self.created_time.year)[-2:]  # 只取年份的最后两位
-            self.slug = f"{day}{month}{year}{self.pk}"
-
-        # 获取 update_fields 的值
+        # update_fields 不会直接影响模型，仅适用于数据库更新
+        # 它仅限于控制在将更改写入数据库，而不影响模型实例本身的字段值
         update_fields = kwargs.get('update_fields', [])
-        # 如果模型存在主键且 views 和 pin 字段不在 update_fields 中，则更新 modified_time 字段
-        # 因为如果有不属于文章本身的内容修改，不应该更新 modified_time 字段
-        if self.pk and (not {'views', 'pin'}.intersection(update_fields)):  # 使用集合的交集判断
-            # 更新 modified_time，因为其他字段正在被更新
-            self.modified_time = timezone.now()
 
-        # 在保存之前生成并缓存 Markdown 渲染后的正文内容
-        if self.body:
-            self.rendered_body = self.render_markdown(self.body)
+        # 更新 modified_time 字段逻辑：若非文章本身的内容的修改不更新
+        # if self.pk and (not {'views', 'pin'}.intersection(update_fields)):  # 使用集合的交集判断
+        #     # 更新 modified_time，因为其他字段正在被更新
+        #     self.modified_time = timezone.now()
+
         super().save(*args, **kwargs)
         self.refresh_from_db()  # 重新加载模型实例的状态
+
+    # 默认的 slugify 函数会将字符串中的非字母数字字符替换为短横线（-），并且会将多个短横线合并为一个。
+    # 指定参数 allow_unicode=True，允许使用 Unicode 字符。
+    # 使用 unidecode 将中文转成拼音或自定义 slugify 处理中文。
+    def generate_slug(self):
+        # self.slug = slugify(unidecode(self.title), allow_unicode=True)
+        # 自动生成 slug
+        day = str(self.created_time.day).lstrip('0')
+        month = str(self.created_time.month).lstrip('0')
+        year = str(self.created_time.year)[-2:]  # 只取年份的最后两位
+        return f"{day}{month}{year}{self.pk}"
 
     def get_absolute_url(self):
         """
@@ -191,21 +184,14 @@ class Post(models.Model):
         self.views = F('views') + 1  # 使用 F() 表达式避免读-写竞争问题
         self.save(update_fields=['views'])
 
-    def render_markdown(self, body):
 
-        # 替换 Markdown 标题中的特殊符号
-        body = replace_markdown_symbols(body)
+from django.db.models.signals import pre_save
+from django.dispatch import receiver
 
-        # 缓存渲染的 Markdown 内容
-        md = MarkdownIt('gfm-like').use(
-            anchors_plugin,
-            min_level=2,
-            max_level=4,
-            slug_func=slugify,
-            permalink=True,
-            permalinkSymbol='',
-            permalinkBefore=False,
-            permalinkSpace=True
-        )
 
-        return md.render(body)
+@receiver(pre_save, sender=Post)
+def set_excerpt(sender, instance, **kwargs):
+    if not instance.excerpt:
+        md = MarkdownIt()
+        html = md.render(instance.body)
+        instance.excerpt = generate_summary(html, 120)

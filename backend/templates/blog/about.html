@@ -1,25 +1,17 @@
 {% extends "base.html" %}
-
+{% load static %}
 {% block content %}
+
 <!-- 主内容区域 -->
 <article class="px-1">
     <h1 class="dynamic-title">关于</h1>
     <div class="content">
         <p>
-            <a href="#" target="_blank" class="">这是我的个人博客，用于记录我发疯的地方。</a>
+            <a href="#" target="_blank" class="" onclick="event.preventDefault();">这是我的个人博客，用于记录我发疯的地方。</a>
+            <!--<img src="{% static 'assets/img/twintails.jpg' %}" alt="twintails.jpg">-->
         </p>
-
-<!--        <h2 id="features">-->
-<!--            <span class="me-2">特色</span>-->
-<!--            <a href="#features" class="anchor text-muted">-->
-<!--                <i class="fas fa-hashtag"></i>-->
-<!--            </a>-->
-<!--        </h2>-->
-        <ul>
-<!--            <li><strong>Dark Mode</strong>: Enhanced readability in low-light environments.</li>-->
-
-        </ul>
+        {% include '_includes/qplayer.html' %}
     </div>
 </article>
-{% endblock %}
 
+{% endblock %}

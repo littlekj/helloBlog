@@ -2,6 +2,17 @@
 from django.contrib import admin
 from blog.models import Post, Category, Tag
 from django.utils.text import slugify
+from blog.utils import render_markdown
+from django import forms
+
+
+class PostModelForm(forms.ModelForm):
+    class Meta:
+        model = Post
+        fields = '__all__'
+        widgets = {
+            'excerpt': forms.Textarea(attrs={'rows': 5, 'cols': 80}),
+        }
 
 
 class PostAdmin(admin.ModelAdmin):
@@ -9,12 +20,14 @@ class PostAdmin(admin.ModelAdmin):
     配置 Post 模型在 Django 管理后台的显示和编辑行为
     """
     # 定义在后台文章列表页面中显示的字段
-    list_display = ['title', 'created_time', 'modified_time', 'get_categories', 'author']
+    list_display = ['title', 'created_time', 'modified_time', 'get_categories', 'author', 'id']
 
     # 定义在后台文章编辑页面中显示的字段
     fields = ['title', 'slug', 'body', 'excerpt', 'categories', 'tags']
 
     readonly_fields = ('rendered_body',)  # 不可编辑字段设置为只读以便显示
+
+    form = PostModelForm
 
     def get_categories(self, obj):
         """
@@ -27,9 +40,19 @@ class PostAdmin(admin.ModelAdmin):
 
     def save_model(self, request, obj, form, change):
         """
-        重写 save_model 方法，在保存模型时，将 author 字段设置为当前登录的用户
+        重写 save_model 方法，
         """
-        obj.author = request.user
+        obj.author = request.user  # 在保存模型时，将 author 字段设置为当前登录的用户
+
+        # update_fields 仅影响数据库操作，不会影响 obj 模型实例本身在内存中的数据状态。
+        if change:
+            if 'body' in form.changed_data or (not obj.rendered_body):
+                # 若 body 字段被修改，则重新渲染 Markdown 内容
+                obj.rendered_body = render_markdown(obj.body)
+                obj.save(update_fields=['body', 'rendered_body'])
+            else:
+                obj.save()
+        obj.save()
 
         super().save_model(request, obj, form, change)
 

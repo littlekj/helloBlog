@@ -76,6 +76,7 @@ INSTALLED_APPS = [
     'blog',
     'comment',
     'haystack',
+    'django.contrib.sitemaps',
 ]
 
 # Haystack 配置
@@ -162,9 +163,10 @@ DATABASES = {
         'CHARSET': 'utf8mb4',
         # 数据库时间日期的时区设定
         'TIME_ZONE': 'Asia/Chongqing',
+        # 设置连接最大存活时间（例如 600 秒，0 表示无连接池，None 表示永久连接）
+        'CONN_MAX_AGE': 600,
     }
 }
-
 
 # Password validation
 # https://docs.djangoproject.com/en/4.2/ref/settings/#auth-password-validators
@@ -202,11 +204,10 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/4.2/howto/static-files/
 
 STATIC_URL = 'static/'
-# 指定在生产环境中收集所有静态文件的目录。
+# 在生产环境中，指定收集所有静态文件的目录
 STATIC_ROOT = os.path.join(BASE_DIR, 'static')
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/4.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
-

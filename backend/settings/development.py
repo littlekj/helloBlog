@@ -41,6 +41,7 @@ INSTALLED_APPS = [
     'blog',
     'comment',
     'haystack',
+    'django.contrib.sitemaps',
 ]
 
 # Haystack 配置
@@ -122,12 +123,14 @@ DATABASES = {
         # 启动 MySQL 服务的端口号
         'PORT': 3306,
         # 数据库用户名和口令
-        'USER': 'hellokitty',
+        'USER': 'quill',
         'PASSWORD': 'qa0123456.',
         # 数据库使用的字符集
         'CHARSET': 'utf8mb4',
         # 数据库时间日期的时区设定
         'TIME_ZONE': 'Asia/Chongqing',
+        # 设置连接最大存活时间（例如 600 秒，0 表示无连接池，None 表示永久连接）
+        'CONN_MAX_AGE': 600,
     }
 }
 
@@ -168,7 +171,7 @@ USE_TZ = True
 
 STATIC_URL = 'static/'
 
-# 指定额外的静态文件目录，通常是用于开发环境。
+# 在开发环境，指定额外的静态文件目录
 STATICFILES_DIRS = [
     BASE_DIR / "static",
 ]
