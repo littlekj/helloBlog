@@ -1,2 +1,6 @@
 .env
 database/db.sqlite3
+logs/nginx/*
+logs/uwsgi/*
+!logs/nginx/.gitkeep
+!logs/uwsgi/.gitkeep

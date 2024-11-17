@@ -3,7 +3,6 @@ from django.utils import translation
 from django.utils.translation import gettext
 from django.urls import resolve
 from blog.models import Post, Category, Tag
-
 import os
 from django.conf import settings
 
@@ -51,20 +50,37 @@ def meta_data(context):
     添加页面元数据
     """
     request = context['request']
-    current_url_name = resolve(request.path_info).url_name  # 获取当前URL的名称
+    current_url_name = resolve(request.path_info).url_name  # 获取当前URL模式的名称
+    full_url = request.build_absolute_uri()
+    # print("full_url:", full_url)
+
+    # 获取用户设备信息
+    user_agent = request.META.get('HTTP_USER_AGENT', '')
+    is_mobile = 'mobile' in user_agent.lower()
 
     if current_url_name == 'index':
         meta = {
             'title': '羽毛笔轻轻划过',
-            'description': '关于 Python、Web 编程等相关技术的博客总结',
+            'description': '这是羽毛笔的个人博客，记录关于 Python、Web 编程等相关技术的内容(•̀ᴗ-)✧',
+            'type': 'website',
+            'keywords': 'Python, Web编程, 技术博客, 后端开发',
         }
     elif current_url_name == 'detail':
         slug = resolve(request.path_info).kwargs.get('slug')
         try:
             current_post = Post.objects.get(slug=slug)
+            if current_post.tags.exists():
+                tags = ', '.join(tag.name for tag in current_post.tags.all())
+            else:
+                tags = ''
             meta = {
                 'title': current_post.title,
-                'description': current_post.title,
+                'description': current_post.excerpt,
+                'type': 'article',
+                'keywords': tags,
+                'author': current_post.author,
+                'published_time': current_post.modified_time,
+                'created_time': current_post.created_time,
             }
         except Post.DoesNotExist:
             meta = {
@@ -114,11 +130,15 @@ def meta_data(context):
     else:
         meta = {
             'title': '羽毛笔轻轻划过',
-            'description': '关于 Python、Web 编程等相关技术的博客总结',
+            'description': '这是羽毛笔的个人博客，记录关于 Python、Web 编程等相关技术的内容。',
         }
 
+    # 添加当前URL到meta数据
+    meta['full_url'] = full_url
+
     context.update({
-        'meta': meta
+        'meta': meta,
+        'is_mobile': is_mobile,
     })
 
     return ''

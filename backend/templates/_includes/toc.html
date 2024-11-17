@@ -9,27 +9,24 @@
 </section>
 {% endif %}
 
-
 <style>
-/* 目录层级默认折叠状态 */
-.is-collapsed {
-    max-height: 0;
-    overflow: hidden;
-    transition: max-height 0.3s ease-out;
-}
-/* 鼠标悬停（hover）或聚焦（focus）到该目录项时展开 */
-.toc-list-item:hover > .toc-list.is-collapsible,
-.toc-list-item:focus-within > .toc-list.is-collapsible {
-    max-height: 1000px;  /* 确保可以完全展开 */
-    overflow: visible;
-}
+    /* 目录层级默认折叠状态 */
+    .is-collapsed {
+        max-height: 0;
+        overflow: hidden;
+        transition: max-height 0.3s ease-out;
+    }
+    /* 鼠标悬停（hover）或聚焦（focus）到该目录项时展开 */
+    .toc-list-item:hover > .toc-list.is-collapsible,
+    .toc-list-item:focus-within > .toc-list.is-collapsible {
+        max-height: 1000px;  /* 确保可以完全展开 */
+        overflow: visible;
+    }
 
 </style>
 
 <!--实现平滑滚动，高亮当前目录项-->
 <script src="https://cdn.jsdelivr.net/npm/tocbot@4.29.0/dist/tocbot.min.js"></script>
-
-
 
 <!--将 h2, h3, h4 等标题标签的内容转换成指定的格式以便修饰-->
 <script>

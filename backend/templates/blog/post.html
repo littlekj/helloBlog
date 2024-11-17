@@ -14,12 +14,6 @@
       {% endif %}
 
       <div class="post-meta text-muted">
-        <!-- 发布时间 -->
-<!--        <span>-->
-<!--          {{ "发布：" }}-->
-<!--          {% include "_includes/datetime.html" with post_time=post.created_time tooltip=true lang="en" %}-->
-<!--        </span>-->
-
         <!-- 最后修改时间 -->
         <span>
         {{ "发布：" }}
@@ -45,7 +39,6 @@
           </div>
         {% endif %}
 
-<!--        <div class="d-flex justify-content-between">-->
           <!-- 作者信息 -->
           {% if post.author %}
             <span>
@@ -56,7 +49,6 @@
             </span>
           {% endif %}
 
-<!--          <div>-->
             <!-- 页面浏览量 -->
             {% if not post.views %}
               <span>
@@ -69,8 +61,6 @@
 
             <!-- 阅读时长 -->
             {% include "_includes/read-time.html" with content=post.body prompt=true %}
-<!--          </div>-->
-<!--        </div>-->
       </div>
     </header>
 

@@ -1,8 +1,16 @@
 from django.urls import path, include
 from blog import views
 from blog.feeds import LatestPostsFeed
+from django.contrib.sitemaps.views import sitemap
+from .sitemaps import PostSitemap, HomeSitemap, TagSitemap
 
 app_name = 'blog'  # 定义 URL 命名空间
+
+sitemaps = {
+    'posts': PostSitemap,
+    'home': HomeSitemap,
+    'tags': TagSitemap,
+}
 
 urlpatterns = [
     # path('', views.index, name='index'),
@@ -25,5 +33,6 @@ urlpatterns = [
     path('rss/', LatestPostsFeed(), name='rss_feed'),
     path('search/', views.search, name='search'),
 
-
+    path('sitemap.xml', sitemap, {'sitemaps': sitemaps}, name='django.contrib.sitemaps.views.sitemap'),
+    path('robots.txt', views.robots_txt, name='robots_txt'),
 ]

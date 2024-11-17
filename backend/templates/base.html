@@ -1,7 +1,7 @@
 <!doctype html>
 {% load static %}
 {% load blog_tags %}
-<html lang="en">
+<html lang="zh-Hans">
   <!-- 包含页面头部的 HTML 文件 -->
   {% include '_includes/head.html' %}
 
@@ -17,7 +17,6 @@
         <div class="row flex-grow-1">
           <!-- 主内容区域 -->
           <main aria-label="Main Content" class="col-12 col-lg-11 col-xl-9 px-md-4">
-            <!-- 定义内容块，子模板可以在此处插入内容 -->
             {% block content %}
             {% endblock %}
           </main>
@@ -52,7 +51,6 @@
 
         <!-- 包含搜索结果的 HTML 文件 -->
         {% include  '_includes/search-results.html' %}
-
       </div>
 
       <!-- 返回顶部按钮 -->
@@ -66,7 +64,7 @@
     <!-- 页面遮罩层 -->
     <div id="mask"></div>
 
-    <!-- 包含加载 JavaScript 文件内容 -->
+    <!-- 加载 JavaScript 文件内容 -->
     {% include '_includes/js-selector.html' %}
   </body>
 </html>

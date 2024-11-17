@@ -5,7 +5,7 @@ from django.shortcuts import get_object_or_404
 
 import re
 from markdown_it import MarkdownIt
-from blog.utils import generate_toc, replace_markdown_symbols, slugify
+from blog.utils import generate_toc, replace_markdown_symbols, custom_slugify
 from mdit_py_plugins.anchors import anchors_plugin
 
 from django.views.generic import DetailView
@@ -24,6 +24,7 @@ from blog.utils import standardize_highlight, highlightTextFirstPart_whether_tit
 from django.db.models import Count
 from django.db.models.functions import Coalesce, ExtractYear, TruncYear
 from django.views.generic import TemplateView
+from django.db.models import Prefetch
 
 import os
 from dotenv import load_dotenv
@@ -77,7 +78,9 @@ class IndexView(BreadcrumbMixin, ListView):
 
     def get_queryset(self):
         # 获取基础查询集
-        queryset = super().get_queryset()
+        queryset = super().get_queryset() \
+            .only('pk', 'title', 'slug', 'excerpt', 'created_time', 'modified_time') \
+            .prefetch_related(Prefetch('categories', queryset=Category.objects.only('name')))
 
         # 首先按修改时间排序，如果么有，使用创建时间排序，动态选择合适的时间字段用于排序
         return queryset.annotate(  # 使用 annotate() 方法添加额外的字段
@@ -123,7 +126,7 @@ class PostDetailView(BreadcrumbMixin, DetailView):
             anchors_plugin,
             min_level=2,
             max_level=4,
-            slug_func=slugify,
+            slug_func=custom_slugify,
             permalink=True,
             permalinkSymbol='',
             permalinkBefore=False,
@@ -133,7 +136,6 @@ class PostDetailView(BreadcrumbMixin, DetailView):
         # 生成目录
         post.toc = generate_toc(md, post.body)
         # print("post.toc:", post.toc)
-
         # 无缓存使用原始的正文渲染内容
         if not post.rendered_body:
             rendered_body = md.render(post.body)
@@ -190,7 +192,15 @@ class CategoryListView(BreadcrumbMixin, ListView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context['categories'] = Category.objects.filter(parent__isnull=True).order_by('name')
+        categories = Category.objects.filter(parent__isnull=True).order_by('name')
+
+        for category in categories:
+            # 查询该分类下的文章并仅获取需要的字段
+            posts = category.post_set.only('title', 'created_time', 'modified_time').order_by('-created_time')
+            # 为每个类别动态设置 posts_list 属性
+            category.posts_list = posts
+
+        context['categories'] = categories
 
         return context
 
@@ -216,7 +226,8 @@ class CategoryDetailView(BreadcrumbMixin, ListView):
             self.selected_category = selected_category  # 将分类实例保存在视图实例中
             # return Post.objects.filter(categories=selected_category)  # 获取该分类下的所有文章
             # 使用 select_related 和prefetch_related 来预加载相关对象，提高查询效率
-            return Post.objects.filter(categories=selected_category).select_related('author').prefetch_related('tags')
+            # return Post.objects.filter(categories=selected_category).select_related('author').prefetch_related('tags')
+            return Post.objects.filter(categories=selected_category).only('title', 'created_time', 'modified_time')
 
         return Post.objects.none()  # 如果没有分类，返回空的文章列表
 
@@ -270,8 +281,12 @@ class TagDetailView(BreadcrumbMixin, ListView):
             selected_tag = get_object_or_404(Tag, slug=tag_slug)
             self.selected_tag = selected_tag  # 将标签实例保存在视图实例中
             # post_list = super(TagDetailView, self).get_queryset().filter(tags=selected_tag).order_by('-created_time')
-            post_list = super(TagDetailView, self).get_queryset().filter(tags=selected_tag).select_related(
-                'author').prefetch_related('categories').order_by('-created_time')
+            # post_list = super(TagDetailView, self).get_queryset().filter(tags=selected_tag).select_related(
+            #     'author').prefetch_related('categories').order_by('-created_time')
+            post_list = super(TagDetailView, self).get_queryset() \
+                .filter(tags=selected_tag) \
+                .only('pk', 'title', 'created_time', 'modified_time') \
+                .order_by('-created_time')
             if not post_list.exists():
                 messages.info(self.request, '没有找到与此标签相关的文章')
             return post_list
@@ -317,9 +332,14 @@ class ArchiveView(BreadcrumbMixin, ListView):
         # 使用annotate添加一个新的排序字段sort_time，该字段是modified_time和created_time的降序排列
         # Coalease函数用于处理空值，如果modified_time为空，则使用created_time
         # ExtractYear函数用于提取日期的年份部分
+        # posts = super(ArchiveView, self).get_queryset().annotate(
+        #     year=ExtractYear(Coalesce('modified_time', 'created_time')),
+        # ).order_by('-year', Coalesce('modified_time', 'created_time').desc())
+
         posts = super(ArchiveView, self).get_queryset().annotate(
             year=ExtractYear(Coalesce('modified_time', 'created_time')),
-        ).order_by('-year', Coalesce('modified_time', 'created_time').desc())
+        ).only('title', 'modified_time', 'created_time') \
+            .order_by('-year', Coalesce('modified_time', 'created_time').desc())
 
         # print("str(posts.query)", str(posts.query))
 
@@ -450,3 +470,14 @@ def search(request):
     # return redirect('/')  # 重定向到首页
     # 非 AJAX 请求处理逻辑（如果有需要返回完整的 HTML 页面，可以在这里处理）
     return JsonResponse({'error': 'Only AJAX requests are supported.'})
+
+
+def robots_txt(request):
+    # 返回 robots.txt 文件内容
+    lines = [
+        "User-agent: *",
+        "Disallow: /admin/",
+        "Allow: /"
+    ]
+
+    return HttpResponse("\n".join(lines), content_type="text/plain")

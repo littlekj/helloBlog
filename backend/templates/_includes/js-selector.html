@@ -1,6 +1,6 @@
-<!-- 后端导入JS静态文件 -->
 {% load static %}
 {% load page_tags %}
+{% meta_data %}
 
 {% comment %}
 注释部分，暂时不使用
@@ -15,43 +15,8 @@
 {% endfor %}
 {% endcomment %}
 
-<!-- 公共部分的 JS 文件 -->
-
 <!-- 引入 Bootstrap 的核心库，处理前端交互和组件功能 -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.1.3/js/bootstrap.bundle.min.js"></script>
-
-<!-- 引入 Prism.js 核心库 -->
-<!--<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>-->
-<!--<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/autoloader/prism-autoloader.min.js"></script>-->
-<!-- 引入行号插件的 JS -->
-<!--<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/line-numbers/prism-line-numbers.min.js"></script>-->
-
-<script src="{% static 'assets/js/prism/prism.min.js' %}"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/autoloader/prism-autoloader.min.js"></script>
-<script src="{% static 'assets/js/prism/prism-line-numbers.min.js' %}"></script>
-<!--动态添加 line-numbers 类-->
-<script>
-    document.querySelectorAll('pre code').forEach((block) => {
-        block.parentElement.classList.add('line-numbers');
-    });
-</script>
-
-<!-- Latex 数学公式渲染 -->
-<!-- 在 Mathjax 的脚本加载前配置 MathJax 的设置 -->
-<!-- 以支持行内和块级数学公式的显示，并使用 SVG 渲染数学公式 -->
-<script>
-    MathJax = {
-      tex: {
-        inlineMath: [['$', '$'], ['\\(', '\\)']],
-        displayMath: [['$$', '$$'], ['\\[', '\\]']]
-      },
-      svg: {
-        fontCache: 'global'
-      }
-    };
-</script>
-<!-- 异步加载 MathJax 脚本，一个用于渲染数学公式的 JavaScript 库-->
-<script async id="MathJax-script" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js"></script>
 
 <!--切换主题模式-->
 <script src="{% static 'assets/js/dist/switch-theme.js' %}"></script>
@@ -62,37 +27,56 @@
 <!--侧边栏显示状态切换-->
 <script type="module" src="{% static 'assets/js/dist/sidebar.js' %}"></script>
 
-<!--粘贴板复制-->
-<script src="{% static 'assets/js/dist/clipboard.min.js' %}"></script>
-<!--document.addEventListener('DOMContentLoaded', function() {-->
-<!--    var clipboard = new ClipboardJS('.btn');-->
-<!--});-->
+<!-- 根据页面布局确定使用的 JS 文件 -->
+{% if meta.type == 'article' %}
+    <!-- 引入 Prism.js 核心库 -->
+    <!--<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>-->
+    <!--<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/autoloader/prism-autoloader.min.js"></script>-->
+    <!-- 引入行号插件的 JS -->
+    <!--<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/line-numbers/prism-line-numbers.min.js"></script>-->
+
+    <script src="{% static 'assets/js/prism/prism.min.js' %}"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/autoloader/prism-autoloader.min.js"></script>
+    <script src="{% static 'assets/js/prism/prism-line-numbers.min.js' %}"></script>
+    <!--动态添加 line-numbers 类-->
+    <script>
+        document.querySelectorAll('pre code').forEach((block) => {
+            block.parentElement.classList.add('line-numbers');
+        });
+    </script>
+
+    <!-- Latex 数学公式渲染 -->
+    <!-- 在 Mathjax 的脚本加载前配置 MathJax 的设置 -->
+    <!-- 以支持行内和块级数学公式的显示，并使用 SVG 渲染数学公式 -->
+    <script>
+        MathJax = {
+          tex: {
+            inlineMath: [['$', '$'], ['\\(', '\\)']],
+            displayMath: [['$$', '$$'], ['\\[', '\\]']]
+          },
+          svg: {
+            fontCache: 'global'
+          }
+        };
+    </script>
+    <!-- 异步加载 MathJax 脚本 -->
+    <script async id="MathJax-script" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js"></script>
+
+    <!--剪切板-->
+    <script src="{% static 'assets/js/dist/clipboard.min.js' %}"></script>
+    <!--document.addEventListener('DOMContentLoaded', function() {-->
+    <!--    var clipboard = new ClipboardJS('.btn');-->
+    <!--});-->
+{% endif %}
 
 {% comment %}
-<!-- 非首页的页面（比如文章和单页）加载图片懒加载、弹出框和剪贴板功能 -->
-
 <!-- 包含 Day.js 相关的 JS 文件 -->
-
-<!-- 加载目录树 JS，如果页面内容包含 <h2 或 <h3 标签并且站点配置了 TOC -->
 
 <!-- 如果页面启用了 Mermaid 图表，则加载 Mermaid JS 文件 -->
 
-<!-- 引入合并后的 JS 文件 -->
-
-{#{% include '_includes/jsdelivr-combine.html' %}#}
-
-<!-- 根据页面布局确定使用的 JS 文件 -->
-
-<!-- 引入最终的 JS 文件 -->
-
-<!-- 如果页面启用了 MathJax 数学公式，则加载 MathJax 相关的 JS 文件 -->
-<script src="https://cdnjs.cloudflare.com/polyfill/v3/polyfill.min.js?features=es6"></script>
-
 <!-- 页面浏览量统计 -->
-<!--{% include "_includes/pageviews/goatcounter.html" %}-->
 
 <!-- 如果页面启用了 Mermaid 图表，加载相关的 HTML 部分 -->
-<!--{% include "_includes/mermaid.html" %}-->
 
 <!-- 如果在生产环境下，加载 PWA 和 Web Analytics -->
 

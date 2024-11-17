@@ -23,7 +23,7 @@ def dict_to_html(toc, isactive, collapsed):
                 html = '<ul class="toc-list is-collapsible is-collapsed">'
 
             for title, sub_toc in toc.items():
-                slug = slugify(title)
+                slug = custom_slugify(title)
                 # print('slug:', slug)
                 level = int(sub_toc['level'])
 
@@ -139,11 +139,11 @@ def replace_markdown_symbols(markdown_text):
         re.sub(pattern, '', line) if line.startswith(('#', '##', '###', '####', '#####', '######')) else line
         for line in lines
     ]
-
+    # print("processed_lines", processed_lines)
     return '\n'.join(processed_lines)
 
 
-def slugify(text):
+def custom_slugify(text):
     # 保留字母、数字和中文字符，其他字符替换为短横线
     # \w: 匹配字母、数字和下划线。
     # \u4e00-\u9fff: 匹配中文字符的 Unicode 范围。
@@ -162,6 +162,29 @@ def generate_summary(html, max_length=200):
     summary_text = text[:max_length] + '...' if len(text) > max_length else text
 
     return summary_text
+
+
+from markdown_it import MarkdownIt
+from blog.utils import generate_toc, replace_markdown_symbols
+from mdit_py_plugins.anchors import anchors_plugin
+
+
+def render_markdown(body):
+    # 替换 Markdown 标题中的特殊符号
+    body = replace_markdown_symbols(body)
+    # 缓存渲染的 Markdown 内容
+    md = MarkdownIt('gfm-like').use(
+        anchors_plugin,
+        min_level=2,
+        max_level=4,
+        slug_func=custom_slugify,  # 自定义 slugify 函数
+        permalink=True,
+        permalinkSymbol='',
+        permalinkBefore=False,
+        permalinkSpace=True
+    )
+
+    return md.render(body)
 
 
 from django.utils.html import strip_tags

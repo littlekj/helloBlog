@@ -1,0 +1,212 @@
+{% load static %}
+
+<style>
+  #player[poster] {
+    object-fit: cover;
+  }
+
+  /* 自定义隐藏菜单 */
+  .dropdown-menu {
+    display: none; /* 默认隐藏 */
+  }
+
+  .dropdown-menu.show {
+    display: block; /* 显示下拉菜单 */
+  }
+
+  /* 控制 Dropdown link 的大小 */
+  #dropdownMenuLink {
+    min-width: 330px; /* 设置最小宽度 */
+  }
+
+  /* 控制下拉菜单的大小 */
+  .dropdown-menu {
+    max-height: 240px;  /* 设置最大高度 */
+    overflow-y: auto;   /* 如果内容超过最大高度，启用垂直滚动 */
+  }
+
+  /* 设置下拉项的字体大小和高度 */
+  .dropdown-item {
+    font-size: 12px; /* 设置下拉项字体大小 */
+    height: 12px; /* 设置下拉项的高度 */
+  }
+</style>
+
+<!-- 视频播放器 -->
+<video id="player" controls preload="auto" poster="{% static 'assets/img/twintails.jpg' %}">
+    <source src="{% static 'assets/audio/风有约，花不误，岁岁年年不相负.mp3' %}" type="audio/mp3">
+    <!-- Captions are optional-->
+    <track kind="captions" label="Chinese captions" src="/path/to/captions.zh.vtt" srclang="zh" default />
+    Your browser does not support the video tag.
+</video>
+
+<div class="dropdown" style="width: auto; height: auto; margin-bottom: 240px;">
+  <a class="btn btn-secondary dropdown-toggle" href="#" role="button" id="dropdownMenuLink" data-bs-toggle="dropdown" aria-expanded="false">
+  </a>
+
+  <ul class="dropdown-menu" aria-labelledby="dropdownMenuLink">
+    <li onclick="changeSong(0)"><a class="dropdown-item" href="#">风有约</a></li>
+    <li onclick="changeSong(1)"><a class="dropdown-item" href="#">花不误</a></li>
+    <li onclick="changeSong(2)"><a class="dropdown-item" href="#">岁岁年年</a></li>
+  </ul>
+</div>
+
+<!-- 引入 Plyr 样式和脚本 -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/plyr@3.7.5/dist/plyr.css" />
+<script src="https://cdn.jsdelivr.net/npm/plyr@3.7.5/dist/plyr.js"></script>
+
+<script>
+    // 初始化 Plyr
+    const player = new Plyr('#player');
+
+    // 音频源数组
+    const audioSources = [
+        {
+            src: "{% static 'assets/audio/风有约，花不误，岁岁年年不相负.mp3' %}",
+            title: "风有约",
+            cover: "{% static 'assets/img/twintails.jpg' %}"  // 可以为每首歌设置不同的封面
+        },
+        {
+            src: "http://music.163.com/song/media/outer/url?id=2085108113",
+            title: "花不误",
+            cover: "{% static 'assets/img/twintails.jpg' %}"
+        },
+        {
+            src: "https://music.163.com/song/media/outer/url?id=1350601781",
+            title: "岁岁年年",
+            cover: "{% static 'assets/img/twintails.jpg' %}"
+        }
+    ];
+
+    // 切换音源
+    function changeSong(index) {
+        const song = audioSources[index];
+
+        // 获取 <video> 元素并更新音频源
+        const videoPlayer = document.getElementById('player');
+        // 更新封面图像
+        videoPlayer.poster = song.cover;
+
+        // 更换播放器的音频源
+        const source = videoPlayer.querySelector('source');
+        source.src = song.src;
+
+        // 重新加载播放器并播放新音频
+        videoPlayer.load();  // 重新加载播放器
+        videoPlayer.play();  // 播放新音频
+    }
+</script>
+
+<script>
+    const video = document.getElementById('player');
+
+    // 页面加载时，检查 localStorage 中是否有保存的音量值
+    function loadVolume() {
+        // 尝试从 localStorage 获取音量值
+        let savedVolume = localStorage.getItem('audioVolume');
+
+        // 如果有保存的音量，使用它；否则使用默认音量
+        if (savedVolume !== null) {
+            if (savedVolume == 1) {
+                savedVolume = 0.9;
+            }
+            video.volume = savedVolume;
+        } else {
+            // 默认音量设置为 50%
+            video.volume = 0.5;
+        }
+    }
+
+    // 音量变化时，保存用户设置的音量
+    document.getElementById('player').addEventListener('volumechange', function() {
+        savedVolume = this.volume; // 保存当前音量
+        // 将音量保存到 localStorage
+        localStorage.setItem('audioVolume', savedVolume);
+    });
+
+    // 页面加载时恢复音量
+    loadVolume();
+</script>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // 获取音视频元素
+        const video = document.getElementById('player');
+
+        // 获取所有链接
+        const links = document.querySelectorAll('a');
+
+        // 遍历所有链接
+        links.forEach(link => {
+            link.addEventListener('click', function(event) {
+                // 如果音视频正在播放，阻止默认跳转行为
+                if (!video.paused) {
+                    event.preventDefault();  // 阻止默认的链接跳转
+                    // 确保 href 属性存在，并且不等于 '#'
+                    if (link.getAttribute('href') && link.getAttribute('href') !== '#') {
+                        // 使用 window.open 在新标签页打开链接
+                        window.open(link.href, '_blank');
+                    }
+                }
+            });
+        });
+    });
+</script>
+
+<script>
+    // 在 DOM 内容完全加载后执行
+    document.addEventListener('DOMContentLoaded', function () {
+        // 获取视频封面元素
+        const videoPoster = document.getElementById('player');
+
+        // 获取按钮和菜单
+        const dropdownButton = document.getElementById('dropdownMenuLink');
+        const dropdownMenu = document.querySelector('.dropdown-menu');
+        const dropdownToggle = document.querySelector('.dropdown');
+
+        // 设置下拉菜单宽度与视频封面一致
+        function adjustDropdownWidth() {
+        // 获取视频封面宽度
+        const videoWidth = videoPoster.getBoundingClientRect().width;
+
+        // 设置下拉按钮宽度与视频封面一致
+        dropdownButton.style.width = `${videoWidth}px`;
+        dropdownMenu.style.width = `${videoWidth}px`;
+        dropdownToggle.style.width = `${videoWidth}px`;
+        }
+
+        // 初始加载时调整宽度
+        adjustDropdownWidth();
+
+        // 监听窗口大小变化，动态调整宽度
+        window.addEventListener('resize', function() {
+            adjustDropdownWidth();
+        });
+
+        // 监听按钮点击事件
+        dropdownButton.addEventListener('click', function (event) {
+          // 切换下拉菜单的显示状态
+          const isExpanded = dropdownButton.getAttribute('aria-expanded') === 'true';
+
+          // 切换 aria-expanded 的值
+          dropdownButton.setAttribute('aria-expanded', !isExpanded);
+
+          // 根据 aria-expanded 状态来显示或隐藏菜单
+          if (isExpanded) {
+            dropdownMenu.classList.add('show');     // 显示菜单
+          } else {
+            dropdownMenu.classList.remove('show');  // 隐藏菜单
+          }
+        });
+
+        // 监听菜单和按钮的 blur 事件（焦点离开时）
+        dropdownButton.addEventListener('blur', function() {
+          setTimeout(() => {
+            if (!dropdownButton.getAttribute('aria-expanded') == 'true') {
+                dropdownMenu.classList.remove('show');  // 隐藏菜单
+                dropdownButton.setAttribute('aria-expanded', 'false');
+            }
+          }, 150);  // 延迟一段时间，确保点击菜单项时不会立即关闭
+        });
+    });
+</script>

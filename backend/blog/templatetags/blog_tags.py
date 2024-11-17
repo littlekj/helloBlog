@@ -37,7 +37,8 @@ def show_recent_posts(context, num=5):
     if not recent_posts:
         try:
             # 查询所有博客文章，按修改时间降序或创建时间降序排序，限制为前num个
-            recent_posts = Post.objects.order_by(Coalesce('modified_time', 'created_time').desc())[:num]
+            recent_posts = Post.objects.order_by(Coalesce('modified_time', 'created_time').desc()).only('pk', 'title')[
+                           :num]
             # 将查询结果存储到缓存中，设置有效时间为600秒
             cache.set(cache_key, recent_posts, timeout=600)
         except Exception as e:
@@ -161,7 +162,7 @@ def share_detail(context, post_pk):
     request = context['request']
 
     # 获取文章对象
-    post = get_object_or_404(Post, pk=post_pk)
+    post = get_object_or_404(Post.objects.only('pk', 'title'), pk=post_pk)
 
     # 定义分享平台
     share_platforms = [

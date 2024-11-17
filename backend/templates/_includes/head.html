@@ -3,84 +3,126 @@
     {% load page_tags %}
     {% meta_data %}
 
-    <!-- 定义页面的字符编码为 UTF-8 -->
-    <meta content="text/html; charset=UTF-8" http-equiv="Content-Type">
+    <!-- 定义页面字符编码为 UTF-8 -->
+    <meta charset="UTF-8">
 
-    <!-- 根据用户的色彩方案设置主题颜色 -->
+    <!-- 设置页面标题 -->
+    {% if meta.type == 'website' %}
+    <title>{{ meta.title }}</title>
+    {% else %}
+    <title>{{ meta.title }} - 羽毛笔 </title>
+    {% endif %}
+
+    <!-- 动态设置主题颜色 -->
     <meta content="#f7f7f7" media="(prefers-color-scheme: light)" name="theme-color">
     <meta content="#1b1b1e" media="(prefers-color-scheme: dark)" name="theme-color">
 
-    <!-- 使网页可以在 iOS 设备上作为独立的应用运行 -->
-    <meta content="yes" name="apple-mobile-web-app-capable">
+    <!-- iOS 独立应用模式 -->
     <meta content="yes" name="mobile-web-app-capable">
-
-    <!-- 设置 iOS 设备上的状态栏样式 -->
     <meta content="black-translucent" name="apple-mobile-web-app-status-bar-style">
 
     <!-- 设置视口，以适应不同的设备 -->
-    <meta content="width=device-width, user-scalable=no initial-scale=1, shrink-to-fit=no, viewport-fit=cover"
-          name="viewport">
+    <meta content="width=device-width, initial-scale=1, shrink-to-fit=no, viewport-fit=cover" name="viewport">
 
     <!-- 指定生成网页的工具或平台 -->
     <meta content="{{ 'django' }}" name="generator">
 
-    <!-- Open Graph 元数据，用于社交媒体分享 -->
-
-    <meta content="{{ meta.title }}" property="og:title">
-    <meta content="en" property="og:locale">
-    <!--  <meta name="description" content="关于 Python、Web 编程等相关技术的博客总结">-->
-    <!--  <meta property="og:description" content="关于 Python、Web 编程等相关技术的博客总结">-->
+    <!-- 基本 SEO 元数据 -->
     <meta content="{{ meta.description }}" name="description">
+    <meta content="{{ meta.keywords }}, {{ meta.title }}, 羽毛笔, quill" name="keywords">
+
+    <!-- 搜索引擎首选使用的规范网址 -->
+    <link href="{{ meta.full_url }}" rel="canonical">
+
+    <!-- Open Graph 元数据，用于社交媒体分享 -->
+    <meta content="{{ meta.title }}" property="og:title">
     <meta content="{{ meta.description }}" property="og:description">
-    <link href="https://example.com/" rel="canonical">
-    <meta content="https://example.com/" property="og:url">
-    <meta content="Quill" property="og:site_name">
+    <meta content="{{ meta.full_url }}" property="og:url">
+    <meta content="{{ meta.image_url }}" property="og:image">
+    <meta content="羽毛笔" property="og:site_name">
+    <meta content="zh_CN" property="og:locale">
+    {% if meta.type == 'article' %}
+    <meta content="article" property="og:type">
+    <meta content="{{ meta.published_time }}" property="article:published_time">
+    <meta content="羽毛笔" name="article:author">
+    {% else %}
     <meta content="website" property="og:type">
-    <meta content="https://example/devices-mockup.png" property="og:image">
+    {% endif %}
 
-    <!-- Google 网站验证 -->
-    <meta content="xxxx" name="google-site-verification">
-
-    <!-- JSON-LD 结构化数据，用于提高 SEO -->
+    <!-- JSON-LD 结构化数据 -->
+    {% if meta.type == 'website' %}
     <script type="application/ld+json">
         {
             "@context": "https://schema.org",
             "@type": "WebSite",
-            "description": "technical writing.",
-            "headline": "Quill",
-            "name": "Quill",
-            "sameAs": [
-                "https://github.com/example"
+            "name": "羽毛笔",
+            "alternateName": [
+                "Quill",
+                "Quillnk"
             ],
-            "url": "https://quillnk.com/"
+            "url": "{{ meta.full_url }}",
+            "description": "{{ meta.description }}",
+            "headline": "{{ meta.title }}",
+            "sameAs": [
+                "{{ meta.full_url }}"
+            ]
         }
     </script>
+    {% else %}
+    <script type="application/ld+json">
+        {
+            "@context": "https://schema.org",
+            "@type": "BlogPosting",
+            "name": "羽毛笔",
+            "alternateName": [
+                "Quill",
+                "Quillnk"
+            ],
+            "url": "{{ meta.full_url }}",
+            "description": "{{ meta.description }}",
+            "author": {
+                "@type": "Person",
+                "name": "羽毛笔",
+                "url": "{{ meta.full_url }}"
+            },
+            "dateModified": "{{ meta.published_time }}",
+            "datePublished": "{{ meta.published_time }}",
+            "headline": "{{ meta.title }}",
+            "mainEntityOfPage": {
+                "@type": "WebPage",
+                "@id": "{{ meta.full_url }}"
+            }
+        }
+    </script>
+    {% endif %}
 
-    <!-- 设置页面标题 -->
-    <!--  <title>羽毛笔轻轻划过</title>-->
-    <title>{{ meta.title }}</title>
+    <!-- 网站验证 -->
+    <meta content="vBTmWtMfnkZZ9dy8JH7ppbEy_uqaxNrw0nyqt1KEr28" name="google-site-verification">
+    <meta content="codeva-ywL7rZt7Ap" name="baidu-site-verification"/>
 
-    <!-- 设置不同平台的图标 -->
+    <meta content="text/html;charset=gb2312" http-equiv="Content-Type"/>
+    <meta content="QXP2ZfzALN" name="sogou_site_verification"/>
+
+    <!-- 网站图标 -->
     <link href="{% static 'assets/img/favicons/apple-touch-icon.png' %}" rel="apple-touch-icon" sizes="180x180">
     <link href="{% static 'assets/img/favicons/favicon-32x32.png' %}" rel="icon" sizes="32x32" type="image/png">
     <link href="{% static 'assets/img/favicons/favicon-16x16.png' %}" rel="icon" sizes="16x16" type="image/png">
     <link href="{% static 'assets/img/favicons/site.webmanifest' %}" rel="manifest">
     <link href="{% static 'assets/img/favicons/favicon.ico' %}" rel="shortcut icon">
 
-    <!-- 设置 iOS 设备上的应用标题和 Windows 设备上的瓷砖颜色 -->
-    <meta content="Quill" name="apple-mobile-web-app-title">
-    <meta content="Quill" name="application-name">
+    <!-- iOS 设备应用标题和 Windows 设备颜色 -->
+    <meta content="羽毛笔" name="apple-mobile-web-app-title">
+    <meta content="羽毛笔" name="application-name">
     <meta content="#da532c" name="msapplication-TileColor">
     <meta content="{% static 'assets/img/favicons/browserconfig.xml' %}" name="msapplication-config">
 
-    <!-- 另一个主题颜色设置 -->
-    <meta content="#ffffff" name="theme-color">
-
-    <!-- 预连接和预取资源以提高页面加载速度 -->
+    <!-- 预连接资源 -->
     <link href="https://fonts.googleapis.com" rel="preconnect">
     <link href="https://fonts.googleapis.com" rel="dns-prefetch">
-    <link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect">
-    <link href="https://fonts.gstatic.com" rel="dns-prefetch">
+    <link crossorigin href="https://fonts.gstatic.com" rel="preconnect">
+    <link crossorigin href="https://fonts.gstatic.com" rel="dns-prefetch">
+    <link href="https://cdnjs.cloudflare.com" rel="preconnect">
+    <link href="https://cdnjs.cloudflare.com" rel="dns-prefetch">
     <link href="https://cdn.jsdelivr.net" rel="preconnect">
     <link href="https://cdn.jsdelivr.net" rel="dns-prefetch">
 
@@ -88,23 +130,29 @@
     <!--  <link rel="stylesheet" type="text/css" href="{% static 'assets/css/bootstrap.min.css' %}">-->
     <link href="{% static 'assets/css/jekyll-theme-chirpy.min.css' %}" rel="stylesheet" type="text/css">
     <link href="{% static 'assets/css/custom-style.css' %}" rel="stylesheet" type="text/css">
+
     <link href="https://fonts.googleapis.com/css2?family=Lato:wght@300;400&family=Source+Sans+Pro:wght@400;600;700;900&display=swap"
           rel="stylesheet">
-    <link href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.6.0/css/all.min.css" rel="stylesheet">
+    <link crossorigin="anonymous" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css"
+          referrerpolicy="no-referrer" rel="stylesheet"/>
+    <noscript>
+        <link crossorigin="anonymous" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css"
+              referrerpolicy="no-referrer" rel="stylesheet"/>
+    </noscript>
     <link href="https://cdn.jsdelivr.net/npm/loading-attribute-polyfill@2.1.1/dist/loading-attribute-polyfill.min.css"
           rel="stylesheet">
 
-    <!-- 引入核心 CSS -->
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism.min.css" rel="stylesheet" />
-    <!-- 引入行号插件的 CSS -->
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/line-numbers/prism-line-numbers.min.css" rel="stylesheet" />
+    {% if meta.type == 'article' %}
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism.min.css" rel="stylesheet"/>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/line-numbers/prism-line-numbers.min.css"
+          rel="stylesheet"/>
+    {% endif %}
 
     <style>
     @media (max-width: 768px) {
       .pagination .page-item {
         display: none !important; /* 隐藏所有页码 */
       }
-
       .pagination .page-item.active, /* 当前页 */
       .pagination .page-item:first-child, /* 第一页 */
       .pagination .page-item:last-child, /* 最后一页 */
@@ -114,5 +162,4 @@
       }
     }
     </style>
-
 </head>
