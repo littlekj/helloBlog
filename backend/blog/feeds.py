@@ -34,5 +34,6 @@ class LatestPostsFeed(Feed):
     def item_pubdate(self, item):
         return item.created_time
 
-    def item_author(self, item):
-        return item.author
+    def item_author_name(self, item):
+        # Django 默认生成的是 <dc:creator>，不是 <author>。
+        return item.author.username

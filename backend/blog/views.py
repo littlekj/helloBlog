@@ -2,7 +2,7 @@ from django.http import HttpResponse, JsonResponse
 from django.shortcuts import render, redirect
 from blog.models import Post, Category, Tag
 from django.shortcuts import get_object_or_404
-
+from django.utils.functional import cached_property
 import re
 from markdown_it import MarkdownIt
 from blog.utils import generate_toc, replace_markdown_symbols, custom_slugify
@@ -16,25 +16,21 @@ from django.contrib import messages
 from django.db.models import Q
 
 from haystack.query import SearchQuerySet
+from haystack.inputs import Exact
 from haystack.inputs import AutoQuery
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from django.template.loader import render_to_string
-from blog.utils import standardize_highlight, highlightTextFirstPart_whether_title
+from blog.utils import normalize_highlight, is_highlight_title_first
 
 from django.db.models import Count
 from django.db.models.functions import Coalesce, ExtractYear, TruncYear
 from django.views.generic import TemplateView
 from django.db.models import Prefetch
 
-import os
 from dotenv import load_dotenv
 
 # 加载 .env 文件中的环境变量
 load_dotenv()
-
-
-# def index(request):
-#     return HttpResponse("欢迎访问我的博客首页！")
 
 
 # def index(request):
@@ -54,17 +50,21 @@ class BreadcrumbMixin:
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context['breadcrumbs'] = self.get_breadcrumbs()
-        context['breadcrumbs_mobile'] = self.get_breadcrumbs_mobile()
+        context.update({
+            'breadcrumbs': self.get_breadcrumbs(),
+            'breadcrumbs_mobile': self.get_breadcrumbs_mobile(),
+        })
         return context
 
 
 # 用于处理 Post 模型对象列表的视图逻辑
 class IndexView(BreadcrumbMixin, ListView):
     """
-    类的继承顺序影响方法解析顺序MRO。
-    首先调用 BreadcrumbMixin 的 get_context_data 方法中，super().get_context_data(**kwargs)
-    super()的指定会调用下一个类 ListView 中的 get_context_data 方法，从而获取基础的上下文数据。
+    类的继承顺序影响类的继承链（MRO，方法解析顺序）。
+    类的继承链：IndexView -> BreadcrumbMixin -> ListView -> TemplateView -> View -> object
+    get_context_data 未显式定义时，super() 会按 MRO 顺序查找 get_context_data 方法。
+    所以，首先，会调用 BreadcrumbMixin 中的 get_context_data 方法；
+    然后，其中的 super().get_context_data(**kwargs)，会触发调用下一个类 ListView 中的 get_context_data 方法，最终返回正确的上下文数据。
     """
     model = Post
     template_name = 'blog/index.html'
@@ -185,7 +185,7 @@ class PostDetailView(BreadcrumbMixin, DetailView):
         return ['文章']
 
 
-class CategoryListView(BreadcrumbMixin, ListView):
+class CategoryListView(BreadcrumbMixin, ListView, ):
     model = Category
     template_name = 'blog/categories.html'
     context_object_name = 'category_list'
@@ -193,7 +193,6 @@ class CategoryListView(BreadcrumbMixin, ListView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         categories = Category.objects.filter(parent__isnull=True).order_by('name')
-
         for category in categories:
             # 查询该分类下的文章并仅获取需要的字段
             posts = category.post_set.only('title', 'created_time', 'modified_time').order_by('-created_time')
@@ -219,17 +218,15 @@ class CategoryDetailView(BreadcrumbMixin, ListView):
     template_name = 'blog/category.html'
     context_object_name = 'related_posts'
 
-    def get_queryset(self, **kwargs):
-        category_slug = self.kwargs.get('slug', None)  # 获取URL中的slug参数
-        if category_slug:
-            selected_category = get_object_or_404(Category, slug=category_slug)
-            self.selected_category = selected_category  # 将分类实例保存在视图实例中
-            # return Post.objects.filter(categories=selected_category)  # 获取该分类下的所有文章
-            # 使用 select_related 和prefetch_related 来预加载相关对象，提高查询效率
-            # return Post.objects.filter(categories=selected_category).select_related('author').prefetch_related('tags')
-            return Post.objects.filter(categories=selected_category).only('title', 'created_time', 'modified_time')
+    @cached_property
+    def selected_category(self):
+        category_slug = self.kwargs.get('slug', None)  # 获取 URL 中的分类 slug 参数
+        return get_object_or_404(Category, slug=category_slug)
 
-        return Post.objects.none()  # 如果没有分类，返回空的文章列表
+    def get_queryset(self, **kwargs):
+        # 使用 select_related 和prefetch_related 来预加载相关对象，提高查询效率
+        # return Post.objects.filter(categories=selected_category).select_related('author').prefetch_related('tags')
+        return Post.objects.filter(categories=self.selected_category).only('title', 'created_time', 'modified_time')
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -241,7 +238,7 @@ class CategoryDetailView(BreadcrumbMixin, ListView):
         return [
             ('首页', '/'),
             ('分类', '/categories/'),
-            (self.selected_category, self.selected_category.get_absolute_url()),
+            (self.selected_category.name, self.selected_category.get_absolute_url()),
         ]
 
     def get_breadcrumbs_mobile(self):
@@ -274,27 +271,32 @@ class TagDetailView(BreadcrumbMixin, ListView):
     template_name = 'blog/tag.html'
     context_object_name = 'post_list'
 
+    @cached_property
+    def selected_tag(self):
+        tag_slug = self.kwargs.get('slug', None)  # 获取 URL 中的标签 slug 参数
+        return get_object_or_404(Tag, slug=tag_slug)
+
     # 重写 get_queryset 方法，用于自定义查询集
     def get_queryset(self):
-        tag_slug = self.kwargs.get('slug', None)
-        if tag_slug:
-            selected_tag = get_object_or_404(Tag, slug=tag_slug)
-            self.selected_tag = selected_tag  # 将标签实例保存在视图实例中
-            # post_list = super(TagDetailView, self).get_queryset().filter(tags=selected_tag).order_by('-created_time')
-            # post_list = super(TagDetailView, self).get_queryset().filter(tags=selected_tag).select_related(
-            #     'author').prefetch_related('categories').order_by('-created_time')
-            post_list = super(TagDetailView, self).get_queryset() \
-                .filter(tags=selected_tag) \
-                .only('pk', 'title', 'created_time', 'modified_time') \
-                .order_by('-created_time')
-            if not post_list.exists():
-                messages.info(self.request, '没有找到与此标签相关的文章')
-            return post_list
-        return super(TagDetailView, self).get_queryset().none()
+        # 获取该标签下的文章，优化查询：只加载必要的字段并预加载关联字段
+        post_list = super().get_queryset() \
+            .filter(tags=self.selected_tag) \
+            .only('pk', 'title', 'created_time', 'modified_time') \
+            .order_by('-created_time')
+
+        return post_list if post_list.exists() else Post.objects.none()
 
     def get_context_data(self, **kwargs):
+        # 获取父类的上下文数据
         context = super().get_context_data(**kwargs)
-        context['selected_tag'] = getattr(self, 'selected_tag', None)  # 使用视图实例中的标签实例，None 是当属性不存在时的默认值。
+
+        # 将当前标签实例添加到上下文中，便于在模板中使用
+        context['selected_tag'] = getattr(self, 'selected_tag', None)
+
+        # 如果没有找到相关文章，则添加提示信息
+        if not context['post_list']:
+            messages.info(self.request, '没有找到与此标签相关的文章')
+
         return context
 
     def get_breadcrumbs(self):
@@ -307,19 +309,6 @@ class TagDetailView(BreadcrumbMixin, ListView):
     def get_breadcrumbs_mobile(self):
         return ['标签']
 
-
-# def archive(request, year, month):
-#     """
-#     访问文章归档页
-#     :param year: 年份
-#     :param month: 月份
-#     """
-#     post_list = Post.objects.filter(
-#         created_time__year=year,  # created_time 是 date 对象，__year 是 date 对象的属性
-#         created_time__month=month
-#     ).order_by('-created_time')
-#
-#     return render(request, 'blog/index.html', context={'post_list': post_list})
 
 class ArchiveView(BreadcrumbMixin, ListView):
     model = Post
@@ -340,8 +329,6 @@ class ArchiveView(BreadcrumbMixin, ListView):
             year=ExtractYear(Coalesce('modified_time', 'created_time')),
         ).only('title', 'modified_time', 'created_time') \
             .order_by('-year', Coalesce('modified_time', 'created_time').desc())
-
-        # print("str(posts.query)", str(posts.query))
 
         # 按年份分组
         post_list_by_year = {}
@@ -394,8 +381,6 @@ class AboutView(BreadcrumbMixin, TemplateView):
 #     # 渲染模板，并将搜索结果传递给模板
 #     return render(request, 'blog/index.html', {'post_list': post_list})
 
-from haystack.inputs import Exact
-
 
 def search(request):
     # 从请求中获取查询参数 q，如果没有提供，则默认为空字符串
@@ -411,15 +396,14 @@ def search(request):
     paginator = Paginator(sqs, 10)
 
     try:
-        page = paginator.page(page_number)  # 返回从给定页码的 Page 对象数据
+        # 尝试获取用户请求的页码对应的分页内容
+        page_obj = paginator.page(page_number)
     except PageNotAnInteger:
-        page = paginator.page(1)  # 如果页码不是整数，则返回第一页的数据
+        # 如果页码不是整数（例如是字母），则返回第一页
+        page_obj = paginator.page(1)
     except EmptyPage:
-        page = paginator.page(paginator.num_pages)  # 如果页码超出范围，则返回最后一页的数据
-
-    # for result in page:
-    #     print('result:', result)
-    #     print('result.highlighted:', result.highlighted)
+        # 如果页码超出总页数范围，则返回最后一页
+        page_obj = paginator.page(paginator.num_pages)
 
     # 将搜索结果转换为 JSON 格式
     # 查询匹配的高亮内容是一个列表，每个元素是一个包含高亮内容的字符串
@@ -429,31 +413,32 @@ def search(request):
         'title': (
             result.highlighted[0].split('\n')[0]
             # if (result.highlighted and (query in result.object.title))
-            if highlightTextFirstPart_whether_title(result.highlighted, result.object.title)
+            if is_highlight_title_first(result.highlighted, result.object.title)
             else result.object.title
         ),
         'categories': ', '.join([category.name for category in result.object.categories.all()]),
         'tags': ', '.join([tag.name for tag in result.object.tags.all()]),
         'snippet': (
-            standardize_highlight(result.highlighted[0].split('\n')[1:])  # 高亮内容匹配标题的情况
+            normalize_highlight(result.highlighted[0].split('\n')[1:])  # 高亮内容匹配标题的情况
             # if result.highlighted and (query in result.object.title)
-            if highlightTextFirstPart_whether_title(result.highlighted, result.object.title)
+            if is_highlight_title_first(result.highlighted, result.object.title)
             else (
-                standardize_highlight(result.highlighted[0])  # 高亮内容不匹配标题的情况
+                normalize_highlight(result.highlighted[0])  # 高亮内容不匹配标题的情况
                 if result.highlighted
-                else standardize_highlight(result.object.body[:150])  # 没有高亮内容时，返回正文前150个字符
+                else normalize_highlight(result.object.body[:150])  # 没有高亮内容时，返回正文前150个字符
             )
         )
-    } for result in page]
+    } for result in page_obj]
 
     data = {
         'query': query,
         # 'page_obj': page,  # JSON 序列化时，Page 对象无法直接序列化
+        'page': page_obj.number,
         'results': results,
-        'has_next': page.has_next(),
-        'has_previous': page.has_previous(),
-        'next_page_number': page.next_page_number() if page.has_next() else None,
-        'previous_page_number': page.previous_page_number() if page.has_previous() else None,
+        'has_next': page_obj.has_next(),
+        'has_previous': page_obj.has_previous(),
+        'next_page_number': page_obj.next_page_number() if page_obj.has_next() else None,
+        'previous_page_number': page_obj.previous_page_number() if page_obj.has_previous() else None,
         'total_pages': paginator.num_pages
     }
 
@@ -461,7 +446,7 @@ def search(request):
     if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
         # 如果是 AJAX 请求，返回 JSON 数据，包含查询结果和分页信息
         results_html = render_to_string('_includes/search-loader.html',
-                                        {'query': query, 'page_obj': page, 'results': results})
+                                        {'query': query, 'page_obj': page_obj, 'results': results})
         data['results_html'] = results_html
         # print("results_html:", results_html)
 
@@ -473,11 +458,12 @@ def search(request):
 
 
 def robots_txt(request):
-    # 返回 robots.txt 文件内容
+    """用于动态生成 robots.txt 文件"""
     lines = [
         "User-agent: *",
         "Disallow: /admin/",
-        "Allow: /"
+        "Allow: /",
+        "Sitemap: https://quillnk.com/sitemap.xml"
     ]
 
     return HttpResponse("\n".join(lines), content_type="text/plain")

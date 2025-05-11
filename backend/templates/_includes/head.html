@@ -1,16 +1,15 @@
+{% load static %}
+{% load page_tags %}
+{% meta_data %}
 <head>
-    {% load static %}
-    {% load page_tags %}
-    {% meta_data %}
-
     <!-- 定义页面字符编码为 UTF-8 -->
-    <meta charset="UTF-8">
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
 
     <!-- 设置页面标题 -->
     {% if meta.type == 'website' %}
     <title>{{ meta.title }}</title>
     {% else %}
-    <title>{{ meta.title }} - 羽毛笔 </title>
+    <title>{{ meta.title }}</title>
     {% endif %}
 
     <!-- 动态设置主题颜色 -->
@@ -29,7 +28,7 @@
 
     <!-- 基本 SEO 元数据 -->
     <meta content="{{ meta.description }}" name="description">
-    <meta content="{{ meta.keywords }}, {{ meta.title }}, 羽毛笔, quill" name="keywords">
+    <meta content="{{ meta.keywords }}, {{ meta.title }}, 蒯林柯, 羽毛笔, quill" name="keywords">
 
     <!-- 搜索引擎首选使用的规范网址 -->
     <link href="{{ meta.full_url }}" rel="canonical">
@@ -39,12 +38,12 @@
     <meta content="{{ meta.description }}" property="og:description">
     <meta content="{{ meta.full_url }}" property="og:url">
     <meta content="{{ meta.image_url }}" property="og:image">
-    <meta content="羽毛笔" property="og:site_name">
+    <meta content="蒯林柯" property="og:site_name">
     <meta content="zh_CN" property="og:locale">
     {% if meta.type == 'article' %}
     <meta content="article" property="og:type">
     <meta content="{{ meta.published_time }}" property="article:published_time">
-    <meta content="羽毛笔" name="article:author">
+    <meta content="蒯林柯" name="article:author">
     {% else %}
     <meta content="website" property="og:type">
     {% endif %}
@@ -55,7 +54,7 @@
         {
             "@context": "https://schema.org",
             "@type": "WebSite",
-            "name": "羽毛笔",
+            "name": "蒯林柯",
             "alternateName": [
                 "Quill",
                 "Quillnk"
@@ -73,7 +72,7 @@
         {
             "@context": "https://schema.org",
             "@type": "BlogPosting",
-            "name": "羽毛笔",
+            "name": "蒯林柯",
             "alternateName": [
                 "Quill",
                 "Quillnk"
@@ -82,11 +81,11 @@
             "description": "{{ meta.description }}",
             "author": {
                 "@type": "Person",
-                "name": "羽毛笔",
+                "name": "蒯林柯",
                 "url": "{{ meta.full_url }}"
             },
             "dateModified": "{{ meta.published_time }}",
-            "datePublished": "{{ meta.published_time }}",
+            "datePublished": "{{ meta.created_time }}",
             "headline": "{{ meta.title }}",
             "mainEntityOfPage": {
                 "@type": "WebPage",
@@ -97,8 +96,8 @@
     {% endif %}
 
     <!-- 网站验证 -->
-    <meta content="vBTmWtMfnkZZ9dy8JH7ppbEy_uqaxNrw0nyqt1KEr28" name="google-site-verification">
-    <meta content="codeva-ywL7rZt7Ap" name="baidu-site-verification"/>
+    <meta content="G8IagGEYlljit8Dc9rv-Xb9ySJcs-TSISZHAQOS4loM" name="google-site-verification">
+    <meta name="baidu-site-verification" content="codeva-NMuHrajoJ0" />
 
     <meta content="text/html;charset=gb2312" http-equiv="Content-Type"/>
     <meta content="QXP2ZfzALN" name="sogou_site_verification"/>
@@ -117,10 +116,10 @@
     <meta content="{% static 'assets/img/favicons/browserconfig.xml' %}" name="msapplication-config">
 
     <!-- 预连接资源 -->
-    <link href="https://fonts.googleapis.com" rel="preconnect">
-    <link href="https://fonts.googleapis.com" rel="dns-prefetch">
-    <link crossorigin href="https://fonts.gstatic.com" rel="preconnect">
-    <link crossorigin href="https://fonts.gstatic.com" rel="dns-prefetch">
+<!--    <link href="https://fonts.googleapis.com" rel="preconnect">-->
+<!--    <link href="https://fonts.googleapis.com" rel="dns-prefetch">-->
+<!--    <link crossorigin href="https://fonts.gstatic.com" rel="preconnect">-->
+<!--    <link crossorigin href="https://fonts.gstatic.com" rel="dns-prefetch">-->
     <link href="https://cdnjs.cloudflare.com" rel="preconnect">
     <link href="https://cdnjs.cloudflare.com" rel="dns-prefetch">
     <link href="https://cdn.jsdelivr.net" rel="preconnect">
@@ -128,19 +127,24 @@
 
     <!-- 引入样式表 -->
     <!--  <link rel="stylesheet" type="text/css" href="{% static 'assets/css/bootstrap.min.css' %}">-->
+    {% if meta.type == 'website' %}
+    <link href="{% static 'assets/css/jekyll-theme-chirpy.css' %}" rel="stylesheet" type="text/css">
+    {% else %}
     <link href="{% static 'assets/css/jekyll-theme-chirpy.min.css' %}" rel="stylesheet" type="text/css">
+    {% endif %}
+
     <link href="{% static 'assets/css/custom-style.css' %}" rel="stylesheet" type="text/css">
 
-    <link href="https://fonts.googleapis.com/css2?family=Lato:wght@300;400&family=Source+Sans+Pro:wght@400;600;700;900&display=swap"
-          rel="stylesheet">
+<!--    <link href="https://fonts.googleapis.com/css2?family=Lato:wght@300;400&family=Source+Sans+Pro:wght@400;600;700;900&display=swap"-->
+<!--          rel="stylesheet">-->
     <link crossorigin="anonymous" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css"
           referrerpolicy="no-referrer" rel="stylesheet"/>
     <noscript>
         <link crossorigin="anonymous" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css"
               referrerpolicy="no-referrer" rel="stylesheet"/>
     </noscript>
-    <link href="https://cdn.jsdelivr.net/npm/loading-attribute-polyfill@2.1.1/dist/loading-attribute-polyfill.min.css"
-          rel="stylesheet">
+<!--    <link href="https://cdn.jsdelivr.net/npm/loading-attribute-polyfill@2.1.1/dist/loading-attribute-polyfill.min.css"-->
+<!--          rel="stylesheet">-->
 
     {% if meta.type == 'article' %}
     <link href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism.min.css" rel="stylesheet"/>

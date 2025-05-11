@@ -45,8 +45,6 @@
     // 将创建的 script 元素添加到页面的指定位置
     document.getElementById('tail-wrapper').appendChild(giscusScript);
 
-
-
       /**
        * 发送 Giscus 主题配置的消息
        * @param {string} theme - 要设置的主题
@@ -72,4 +70,30 @@
       const initTheme = document.documentElement.getAttribute('data-mode') === 'dark' ? darkTheme : lightTheme;
       setGiscusTheme(initTheme);
     })();
+</script>
+
+<!--使用 MutationObserver 动态监听 Giscus 的加载-->
+<!--<script>-->
+<!--    let isGiscusFrameLoaded = false; // 标记 Giscus iframe 是否加载完成-->
+
+<!--    // 监听 iframe 的加载-->
+<!--    const observer = new MutationObserver(() => {-->
+<!--        const giscusFrame = document.querySelector('.giscus-frame');-->
+<!--        if (giscusFrame) {-->
+<!--            isGiscusFrameLoaded = true; // 标记为已加载-->
+<!--            observer.disconnect(); // 停止观察-->
+<!--        }-->
+<!--    });-->
+<!--    observer.observe(document.body, { childList: true, subtree: true });-->
+<!--</script>-->
+
+<script>
+    // 获取 Giscus iframe 元素
+    const giscusIframe = document.querySelector('.giscus-frame');
+
+    // 发送消息给 Giscus iframe
+    giscusIframe.contentWindow.postMessage({
+        type: 'giscusClick', // 可以自定义消息类型
+        data: { message: 'Hello from parent' }
+    }, 'https://giscus.app'); // 指定目标 iframe 的来源
 </script>

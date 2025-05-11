@@ -1,9 +1,10 @@
 {% load static %}
-
 <style>
-  #player[poster] {
-    object-fit: cover;
-  }
+  video {
+      max-width: 100%;
+      height: auto;
+      object-fit: cover;
+    }
 
   /* 自定义隐藏菜单 */
   .dropdown-menu {
@@ -33,12 +34,12 @@
 </style>
 
 <!-- 视频播放器 -->
-<video id="player" controls preload="auto" poster="{% static 'assets/img/twintails.jpg' %}">
-    <source src="{% static 'assets/audio/风有约，花不误，岁岁年年不相负.mp3' %}" type="audio/mp3">
-    <!-- Captions are optional-->
-    <track kind="captions" label="Chinese captions" src="/path/to/captions.zh.vtt" srclang="zh" default />
-    Your browser does not support the video tag.
-</video>
+<!--<video id="player" controls preload="auto" poster="{% static 'assets/img/twintails.jpg' %}">-->
+<!--    <source src="http://music.163.com/song/media/outer/url?id=2126393152" type="audio/mp3">-->
+<!--    &lt;!&ndash; Captions are optional&ndash;&gt;-->
+<!--    <track kind="captions" label="Chinese captions" src="/path/to/captions.zh.vtt" srclang="zh" default />-->
+<!--    Your browser does not support the video tag.-->
+<!--</video>-->
 
 <div class="dropdown" style="width: auto; height: auto; margin-bottom: 240px;">
   <a class="btn btn-secondary dropdown-toggle" href="#" role="button" id="dropdownMenuLink" data-bs-toggle="dropdown" aria-expanded="false">
@@ -52,8 +53,8 @@
 </div>
 
 <!-- 引入 Plyr 样式和脚本 -->
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/plyr@3.7.5/dist/plyr.css" />
-<script src="https://cdn.jsdelivr.net/npm/plyr@3.7.5/dist/plyr.js"></script>
+<link rel="stylesheet" href="https://cdn.plyr.io/3.7.8/plyr.css" />
+<script src="https://cdn.plyr.io/3.7.8/plyr.js"></script>
 
 <script>
     // 初始化 Plyr
@@ -62,7 +63,7 @@
     // 音频源数组
     const audioSources = [
         {
-            src: "{% static 'assets/audio/风有约，花不误，岁岁年年不相负.mp3' %}",
+            src: "http://music.163.com/song/media/outer/url?id=2126393152",
             title: "风有约",
             cover: "{% static 'assets/img/twintails.jpg' %}"  // 可以为每首歌设置不同的封面
         },

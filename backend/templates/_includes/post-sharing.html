@@ -8,34 +8,70 @@
         </font>
     </span>
 
-    <span class="share-icons">
-        <!--生成分享平台的图标链接，替换掉标题和 URL-->
-        {% share_detail post_pk=post.pk %}
-        {% for share in share_platforms %}
-            <a href="{{ share.link }}"
-               target="_blank"
-               rel="noopener"
-               aria-label="{{ share.type }}"
+    <!-- 分享按钮 -->
+    <div class="share-wrapper-icons">
+        <span class="share-icons">
+            <!-- 微信分享图标 -->
+            <a href="javascript:void(0);"
+               aria-label="微信"
                data-bs-toggle="tooltip"
                data-bs-placement="top"
-               data-bs-original-title="{{ share.type }}"
+               data-bs-original-title="微信"
+               onclick="generateWeChatQRCode(this, 'https://zone.ink-quill.com{{ request.get_full_path }}')"
             >
-                <i class="fa-fw {{ share.icon }}"></i>
+                <i class="fa-brands fa-weixin"></i>
             </a>
-        {% endfor %}
 
-        <!-- 生成复制链接按钮 -->
-        <button id="copy-link"
-                aria-label="Copy link"
-                class="btn small"
-                data-bs-toggle="tooltip"
-                data-bs-placement="top"
-                data-bs-original-title="复制链接"
+            <!-- 其他分享平台图标 -->
+            {% share_detail post_pk=post.pk %}
+            {% for share in share_platforms %}
+                <a href="{{ share.link }}"
+                   target="_blank"
+                   rel="noopener"
+                   aria-label="{{ share.type }}"
+                   data-bs-toggle="tooltip"
+                   data-bs-placement="top"
+                   data-bs-original-title="{{ share.type }}"
                 >
-            <i class="fa-fw fas fa-link pe-none fs-6"></i>
-        </button>
-    </span>
+                    <i class="fa-fw {{ share.icon }}"></i>
+                </a>
+            {% endfor %}
+
+            <!-- 生成复制链接按钮 -->
+            <button id="copy-link"
+                    aria-label="Copy link"
+                    class="btn small"
+                    data-bs-toggle="tooltip"
+                    data-bs-placement="top"
+                    data-bs-original-title="复制链接"
+                    >
+                <i class="fa-fw fas fa-link pe-none fs-6"></i>
+            </button>
+        </span>
+
+        <!-- 二维码容器 -->
+        <div id="wechat-qrcode-container">
+            <canvas id="wechat-qrcode" style="margin-bottom: -10px "></canvas>
+            <p class="text-muted mt-2" style="font-size: 0.75rem; text-align: center; margin: 1px !important;">微信扫码分享</p>
+        </div>
+    </div>
 </div>
+
+<!--模态框展示二维码-->
+<!--<div class="modal fade" id="wechatModal" tabindex="-1" aria-labelledby="wechatModalLabel" aria-hidden="true">-->
+<!--    <div class="modal-dialog modal-dialog-centered">-->
+<!--        <div class="modal-content text-center">-->
+<!--            <div class="modal-header">-->
+<!--                <h5 class="modal-title" id="wechatModalLabel">微信分享二维码</h5>-->
+<!--                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="关闭"></button>-->
+<!--            </div>-->
+<!--            <div class="modal-body">-->
+<!--                <canvas id="wechat-qrcode"></canvas>-->
+<!--                <p class="text-muted mt-2">扫描二维码分享到微信</p>-->
+<!--            </div>-->
+<!--        </div>-->
+<!--    </div>-->
+<!--</div>-->
 
 <!-- 分享按钮显示提示信息 -->
 <!--确保已引入 Tooltip 库，以便在复制链接按钮上显示提示信息。-->
@@ -90,6 +126,81 @@
     });
 </script>
 
+<style>
+    /* 父容器 share-wrapper-icons 的样式 */
+    .share-wrapper-icons {
+        position: relative !important; /* 为了让二维码容器相对它定位 */
+        display: inline-block !important; /* 保证元素正常显示 */
+    }
 
+    /* 二维码容器的样式 */
+    #wechat-qrcode-container {
+        display: none;  /* 初始隐藏二维码 */
+        position: absolute;  /* 相对父容器定位 */
+        z-index: 9999;  /* 确保二维码显示在最上面 */
+        left: 60%; /* 水平方向以父容器为参考点 */
+        top: 100%; /* 在图标正上方，调整垂直距离 */
+        transform: translateX(-50%); /* 水平居中对齐图标 */
+        background: #fff;
+        padding: 2px 5px;
+        border: 1px solid #ddd;
+        border-radius: 5px;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    }
+</style>
 
+<script src="https://cdn.jsdelivr.net/npm/qrcode/build/qrcode.min.js"></script>
+<script>
+    function generateWeChatQRCode(iconElement, url) {
+        // 阻止默认行为
+        iconElement.addEventListener('click', (event) => {
+            event.preventDefault();
+        });
 
+        // 隐藏 Tooltip
+        const tooltipInstance = bootstrap.Tooltip.getInstance(iconElement);
+        tooltipInstance?.hide(); // 点击时隐藏
+
+        const qrCodeContainer = document.getElementById('wechat-qrcode-container');
+        const qrCodeCanvas = document.getElementById('wechat-qrcode');
+
+        // 检查 DOM 获取是否正确
+        if (!qrCodeContainer || !qrCodeCanvas) {
+            console.error('二维码容器或画布不存在');
+            return;
+        }
+
+        // 显示二维码容器
+        qrCodeContainer.style.setProperty('display', 'block', 'important');
+
+        // 使用 qrcode.js 生成二维码
+        QRCode.toCanvas(qrCodeCanvas, url, { width: 80 }, function (error) {
+            if (error) {
+                console.error('二维码生成失败:', error);
+                alert('二维码生成失败，请重试！');
+            }
+        });
+
+        // 点击页面其他地方隐藏二维码
+        const hideQRCode = (event) => {
+            if (!qrCodeContainer.contains(event.target) && event.target !== iconElement) {
+                qrCodeContainer.style.display = 'none';
+                document.removeEventListener('click', hideQRCode); // 解除事件绑定
+            }
+        };
+
+        setTimeout(() => {
+            document.addEventListener('click', hideQRCode);
+        }, 0);
+
+        // 监听来自 Giscus iframe 的消息
+        window.addEventListener('message', (event) => {
+            // 确保消息来自 Giscus 的 iframe
+            if (event.origin !== 'https://giscus.app') return;
+
+            // 隐藏二维码
+            qrCodeContainer.style.display = 'none';
+            document.removeEventListener('click', hideQRCode);
+        });
+    }
+</script>

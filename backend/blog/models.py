@@ -165,7 +165,7 @@ class Post(models.Model):
         day = str(self.created_time.day).lstrip('0')
         month = str(self.created_time.month).lstrip('0')
         year = str(self.created_time.year)[-2:]  # 只取年份的最后两位
-        return f"{day}{month}{year}{self.pk}"
+        return f"{year}{month}{day}{self.pk}"
 
     def get_absolute_url(self):
         """

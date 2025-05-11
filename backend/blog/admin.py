@@ -20,7 +20,7 @@ class PostAdmin(admin.ModelAdmin):
     配置 Post 模型在 Django 管理后台的显示和编辑行为
     """
     # 定义在后台文章列表页面中显示的字段
-    list_display = ['title', 'created_time', 'modified_time', 'get_categories', 'author', 'id']
+    list_display = ['title', 'id', 'created_time', 'modified_time', 'get_categories', 'author']
 
     # 定义在后台文章编辑页面中显示的字段
     fields = ['title', 'slug', 'body', 'excerpt', 'categories', 'tags']
@@ -31,7 +31,7 @@ class PostAdmin(admin.ModelAdmin):
 
     def get_categories(self, obj):
         """
-        自定义方法，用于在后台页面列表显示文章的分类信息，逗号分隔
+        自定义方法，用于在后台页面显示文章的分类信息，逗号分隔
         """
         return ', '.join([category.name for category in obj.categories.all()])
 
@@ -40,7 +40,7 @@ class PostAdmin(admin.ModelAdmin):
 
     def save_model(self, request, obj, form, change):
         """
-        重写 save_model 方法，
+        重写 save_model 方法，change 参数表示模型是否是更新操作（而非创建新对象）
         """
         obj.author = request.user  # 在保存模型时，将 author 字段设置为当前登录的用户
 
@@ -50,8 +50,6 @@ class PostAdmin(admin.ModelAdmin):
                 # 若 body 字段被修改，则重新渲染 Markdown 内容
                 obj.rendered_body = render_markdown(obj.body)
                 obj.save(update_fields=['body', 'rendered_body'])
-            else:
-                obj.save()
         obj.save()
 
         super().save_model(request, obj, form, change)

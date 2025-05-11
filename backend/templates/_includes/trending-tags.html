@@ -1,14 +1,14 @@
 <section>
-  <!-- 面板标题，显示热门标签 -->
-  <h2 class="panel-heading">{{ _('热门标签') }}</h2>
-  <div class="d-flex flex-wrap mt-3 mb-1 me-3">
-    <!-- 循环遍历热门标签 -->
-    {% if trending_tags %}
-      {% for tag in trending_tags %}
+    <!-- 面板标题，显示热门标签 -->
+    <h2 class="panel-heading">热门标签</h2>
+    <div class="d-flex flex-wrap mt-3 mb-1 me-3">
+        <!-- 循环遍历热门标签 -->
+        {% if trending_tags %}
+        {% for tag in trending_tags %}
         <!-- 为每个标签生成链接 -->
         <a class="post-tag btn btn-outline-primary" href="{{ tag.get_absolute_url }}">{{ tag.name }}</a>
-      {% endfor %}
-    {% endif %}
-  </div>
+        {% endfor %}
+        {% endif %}
+    </div>
 </section>
 
