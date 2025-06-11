@@ -130,7 +130,7 @@ def meta_data(context):
     else:
         meta = {
             'title': '羽毛笔轻轻划过',
-            'description': '这是蒯林柯的个人博客，记录和分享与 Python、Web 编程等相关的技术实践内容。',
+            'description': '这是蒯林柯的个人博客，记录和分享与 Python、Web 编程等相关的技术实践内容(•̀ᴗ-)✧',
         }
 
     # 添加当前URL到meta数据

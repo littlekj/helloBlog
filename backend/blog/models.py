@@ -4,8 +4,9 @@ from django.utils import timezone
 from django.urls import reverse
 from django.utils.text import slugify
 from markdown_it import MarkdownIt
-from blog.utils import generate_summary, custom_slugify
+from blog.utils import generate_summary, slugify_translate
 from django.db.models import F
+from django.utils.crypto import get_random_string
 
 
 # Create your models here.
@@ -136,32 +137,41 @@ class Post(models.Model):
         return self.title
 
     def save(self, *args, **kwargs):
-        # 如果主键 pk 不存在，则首先保存以生成 pk
-        if not self.pk:
-            super().save(*args, **kwargs)
-            if not self.slug:
-                self.slug = self.generate_slug()
-                self.save(update_fields=['slug'])
-            return
+        is_new = self.pk is None  # 是否首次创建
 
-        # update_fields 不会直接影响模型，仅适用于数据库更新
-        # 它仅限于控制在将更改写入数据库，而不影响模型实例本身的字段值
-        update_fields = kwargs.get('update_fields', [])
+        # 获取 update_fields，指定更新的字段
+        update_fields = kwargs.get("update_fields")
 
-        # 更新 modified_time 字段逻辑：若非文章本身的内容的修改不更新
-        # if self.pk and (not {'views', 'pin'}.intersection(update_fields)):  # 使用集合的交集判断
-        #     # 更新 modified_time，因为其他字段正在被更新
-        #     self.modified_time = timezone.now()
+        # 如果 slug 为空，不论是否创建，均根据标题生成
+        if not self.slug:
+            self.slug = slugify_translate(self.title)
+            # 确保 slug 唯一（追加随机后缀）
+            while Post.objects.filter(slug=self.slug).exists():
+                self.slug = f"{self.slug}-{get_random_string(4)}"
 
+        # 如果传入了 update_fields，则确保 slug 被加入进去
+        if update_fields:
+            update_fields = set(update_fields)
+            update_fields.add("slug")  # 添加 slug 到更新字段
+            kwargs["update_fields"] = list(update_fields)  # 更新回 kwargs
+        else:
+            # 如果没有指定 update_fields，则更新所有字段
+            kwargs["update_fields"] = None
+
+        # 可选：修改时间更新控制（如果启用 modified_time 字段）
+        # update_fields = kwargs.get("update_fields")
+        # if not is_new and update_fields:
+        #     if not {"views", "pin"}.intersection(update_fields):
+        #         self.modified_time = timezone.now()
+
+        # 保存操作
         super().save(*args, **kwargs)
-        self.refresh_from_db()  # 重新加载模型实例的状态
 
-    # 默认的 slugify 函数会将字符串中的非字母数字字符替换为短横线（-），并且会将多个短横线合并为一个。
-    # 指定参数 allow_unicode=True，允许使用 Unicode 字符。
-    # 使用 unidecode 将中文转成拼音或自定义 slugify 处理中文。
+        # 保存后刷新字段（如 auto_now 相关字段）
+        self.refresh_from_db()
+
     def generate_slug(self):
-        # self.slug = slugify(unidecode(self.title), allow_unicode=True)
-        # 自动生成 slug
+        """生成 slug 字段"""
         day = str(self.created_time.day).lstrip('0')
         month = str(self.created_time.month).lstrip('0')
         year = str(self.created_time.year)[-2:]  # 只取年份的最后两位

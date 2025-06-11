@@ -25,7 +25,10 @@ class PostAdmin(admin.ModelAdmin):
     # 定义在后台文章编辑页面中显示的字段
     fields = ['title', 'slug', 'body', 'excerpt', 'categories', 'tags']
 
-    readonly_fields = ('rendered_body',)  # 不可编辑字段设置为只读以便显示
+    # 不可编辑字段设置为只读以便显示
+    readonly_fields = ('rendered_body',)
+
+    prepopulated_fields = {}  # 不自动生成 slug，翻译处理
 
     form = PostModelForm
 

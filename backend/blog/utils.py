@@ -1,7 +1,11 @@
 from collections import defaultdict
 import re
-
 from bs4 import BeautifulSoup
+from django.utils.text import slugify
+from pypinyin import lazy_pinyin
+import random
+import hashlib
+import requests
 
 
 def dict_to_html(toc, isactive, collapsed):
@@ -144,10 +148,56 @@ def replace_markdown_symbols(markdown_text):
 
 
 def custom_slugify(text):
-    # 保留字母、数字和中文字符，其他字符替换为短横线
+    """
+    保留字母、数字和中文字符，其他字符替换为短横线
+    """
     # \w: 匹配字母、数字和下划线。
     # \u4e00-\u9fff: 匹配中文字符的 Unicode 范围。
     return re.sub(r'[^\w\u4e00-\u9fff]+', '-', text.lower()).strip('-')
+
+
+# 百度翻译 API 凭证
+APP_ID = '20250611002379582'
+SECRET_KEY = 'QeVzbItxwBorSBcsLC5G'
+
+
+def translate_baidu(text, from_lang='zh', to_lang='en'):
+    """
+    翻译文本
+    :param text: 要翻译的文本
+    :param from_lang: 原文语言
+    :param to_lang: 目标语言
+    :return: 翻译后的文本
+    """
+    salt = str(random.randint(32768, 65536))
+    sign_str = APP_ID + text + salt + SECRET_KEY
+    sign = hashlib.md5(sign_str.encode('utf-8')).hexdigest()
+
+    url = 'https://fanyi-api.baidu.com/api/trans/vip/translate'
+    params = {
+        'q': text,
+        'from': from_lang,
+        'to': to_lang,
+        'appid': APP_ID,
+        'salt': salt,
+        'sign': sign
+    }
+
+    try:
+        resp = requests.get(url, params=params, timeout=3)
+        result = resp.json()
+        return result['trans_result'][0]['dst']
+    except Exception as e:
+        print(f"翻译失败：{e}")
+        return text
+
+
+def slugify_translate(text):
+    """
+    翻译并生成 URL 友好的字符串
+    """
+    translate_text = translate_baidu(text)
+    return slugify(translate_text)
 
 
 def generate_summary(html, max_length=200):

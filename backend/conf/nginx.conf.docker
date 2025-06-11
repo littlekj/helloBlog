@@ -68,7 +68,7 @@ http {
 	server {
 	    listen       80;
 	    listen       [::]:80;
-	    server_name 101.34.211.137 zone.ink-quill.com;  # 指定处理请求的域名或 IP 地址，建议使用域名
+	    server_name 101.34.211.137 quillnk.com;  # 指定处理请求的域名或 IP 地址，建议使用域名
 	    # Load configuration files for the default server block.
 	    include /etc/nginx/default.d/*.conf;
 
@@ -97,11 +97,11 @@ http {
 	server {
 	    listen      443 ssl http2; # 在 HTTPS 中启用 HTTP/2，以提高性能
             listen       [::]:443 ssl http2;
-	    server_name 101.34.211.137 zone.ink-quill.com;  # 指定处理请求的域名或 IP 地址
+	    server_name 101.34.211.137 quillnk.com;  # 指定处理请求的域名或 IP 地址
 
 	    # SSL 配置
-	    ssl_certificate     /usr/local/share/helloBlog/backend/conf/cert/zone.ink-quill.com_bundle.crt;
-	    ssl_certificate_key /usr/local/share/helloBlog/backend/conf/cert/zone.ink-quill.com.key;
+	    ssl_certificate     /usr/local/share/helloBlog/backend/conf/cert/quillnk.com_bundle.crt;
+	    ssl_certificate_key /usr/local/share/helloBlog/backend/conf/cert/quillnk.com.key;
 	    ssl_session_timeout 5m;
 	    ssl_protocols TLSv1.2 TLSv1.3;
 	    ssl_ciphers 'ECDHE-RSA-AES128-GCM-SHA256:ECDHE-RSA-AES256-GCM-SHA384:ECDHE-RSA-AES128-SHA256:ECDHE-RSA-AES256-SHA384';

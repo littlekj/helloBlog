@@ -1,10 +1,10 @@
 import os
 import django
 
-# 设置环境变量
+# 设置 Django 配置文件的路径
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'settings.development')
 
-# 设置 Django
+# 初始化 Django 环境
 django.setup()
 
 from blog.models import Category, Tag, Post
@@ -180,7 +180,6 @@ from django.db.models import Count
 from markdown_it import MarkdownIt
 from collections import defaultdict
 
-
 # def generate_toc(markdown_text):
 #     # 解析 Markdown 文本
 #     tokens = MarkdownIt().parse(markdown_text)
@@ -275,5 +274,6 @@ from collections import defaultdict
 
 
 from blog.models import Category
+
 categories = Category.objects.values('slug').annotate(count=Count('slug')).filter(count__gt=1)
 print("categories:", categories)

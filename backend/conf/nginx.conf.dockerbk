@@ -63,7 +63,7 @@ http {
     # HTTP 服务器配置
 	server {
 	    listen      0.0.0.0:80;
-	    server_name 101.34.211.137 zone.ink-quill.com;  # 指定处理请求的域名或 IP 地址，建议使用域名
+	    server_name 101.34.211.137 quillnk.com;  # 指定处理请求的域名或 IP 地址，建议使用域名
 
 	    # 日志文件配置
 	    access_log /usr/local/share/helloBlog/backend/logs/access.log;
@@ -90,7 +90,7 @@ http {
 	# HTTPS 服务器配置
 	server {
 	    listen      443 ssl http2; # 在 HTTPS 中启用 HTTP/2，以提高性能
-	    server_name 101.34.211.137 zone.ink-quill.com;  # 指定处理请求的域名或 IP 地址
+	    server_name 101.34.211.137 quillnk.com;  # 指定处理请求的域名或 IP 地址
 
 	    # SSL 配置
 	    ssl_certificate     /usr/local/share/helloBlog/backend/conf/cert/cert.pem;
