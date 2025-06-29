@@ -101,33 +101,33 @@ class ModeToggle {
 
   // 向 Giscus 发送主题变更消息
   sendGiscusTheme(theme) {
-    // const message = { setConfig: { theme: theme } };
-    // const giscusFrame = document.querySelector('.giscus-frame');
-    // // 本地环境允许任何来源，生产环境严格指定 giscus.app
-    // const giscusOrigin = window.location.hostname === '127.0.0.1' ? '*' : 'https://giscus.app';
+    const message = { setConfig: { theme: theme } };
+    const giscusFrame = document.querySelector('.giscus-frame');
+    // 本地环境允许任何来源，生产环境严格指定 giscus.app
+    const giscusOrigin = window.location.hostname === '127.0.0.1' ? '*' : 'https://giscus.app';
 
-    // if (giscusFrame && giscusFrame.contentWindow) {
-    //   // 确保 iframe 加载完成后发送消息
-    //   giscusFrame.contentWindow.postMessage({ giscus: message }, giscusOrigin);
-    // } else {
-    //   console.error('Giscus iframe not found or not ready.');
-    // }
+    if (giscusFrame && giscusFrame.contentWindow) {
+      // 确保 iframe 加载完成后发送消息
+      giscusFrame.contentWindow.postMessage({ giscus: message }, giscusOrigin);
+    } else {
+      console.error('Giscus iframe not found or not ready.');
+    }
   }
 
   // 页面加载时同步 Giscus 主题
   syncGiscusTheme() {
-    // const currentTheme = this.modeStatus === ModeToggle.DARK_MODE ? 'dark' : 'light';
-    // const giscusFrame = document.querySelector('.giscus-frame');
+    const currentTheme = this.modeStatus === ModeToggle.DARK_MODE ? 'dark' : 'light';
+    const giscusFrame = document.querySelector('.giscus-frame');
 
-    // if (giscusFrame) {
-    //   giscusFrame.onload = () => {
-    //     setTimeout(() => {
-    //         this.sendGiscusTheme(currentTheme);
-    //     }, 500);
-    //   };
-    // } else {
-    //   this.sendGiscusTheme(currentTheme);  // 如果 Giscus 已经加载，直接发送主题消息
-    // }
+    if (giscusFrame) {
+      giscusFrame.onload = () => {
+        setTimeout(() => {
+            this.sendGiscusTheme(currentTheme);
+        }, 500);
+      };
+    } else {
+      this.sendGiscusTheme(currentTheme);  // 如果 Giscus 已经加载，直接发送主题消息
+    }
   }
 }
 

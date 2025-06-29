@@ -1,0 +1,13 @@
+<!-- 在 Django 模板中引入 -->
+<div id="tcomment"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/twikoo@latest/dist/twikoo.min.js"></script>
+<script>
+  twikoo.init({
+    // envId: 'http://101.34.211.137:8080', // Twikoo 后端服务地址
+    envId: 'https://quillnk.com/comment', // 反向代理 Twikoo 后端服务地址
+    el: '#tcomment',
+    path: window.location.pathname,  // 自动获取当前页面路径
+    lang: 'zh-CN'
+  });
+</script>

@@ -2,6 +2,7 @@ from django.test import TestCase
 from blog.models import Post, Category, Tag
 from django.contrib.auth.models import User
 from django.urls import reverse
+from blog.utils import slugify_translate
 
 
 class CategoryModelTest(TestCase):
@@ -76,7 +77,7 @@ class PostModelTest(TestCase):
 
         # 创建 Post 实例
         self.post = Post.objects.create(
-            title="Test Post",
+            title="测试 Post",
             body="This is a test post content.",
             author=self.user
         )
@@ -87,7 +88,7 @@ class PostModelTest(TestCase):
     def test_post_creation(self):
         # 测试文章是否成功创建
         post = self.post
-        self.assertEqual(post.title, "Test Post")
+        self.assertEqual(post.title, "测试 Post")
         self.assertEqual(post.body, "This is a test post content.")
         self.assertEqual(post.author.username, "testuser")
         self.assertEqual(post.categories.first().name, "Test Category1")
@@ -96,7 +97,7 @@ class PostModelTest(TestCase):
     def test_slug_generation(self):
         # 测试 slug 是否生成正确
         post = self.post
-        expected_slug = f"{str(post.created_time.year)[-2:]}{str(post.created_time.month).lstrip('0')}{str(post.created_time.day).lstrip('0')}{post.pk}"
+        expected_slug = slugify_translate(post.title)
         self.assertEqual(post.slug, expected_slug)
 
     def test_save_with_no_slug(self):
@@ -109,11 +110,11 @@ class PostModelTest(TestCase):
 
         # 验证 slug 是否被自动生成
         self.assertIsNotNone(post.slug)
-        self.assertTrue(post.slug.startswith(str(post.created_time.year)[-2:]))
+        self.assertTrue(post.slug.startswith(slugify_translate(post.title)))
 
     def test_post_string_representation(self):
         # 测试 Post 模型的字符串表示
-        self.assertEqual(str(self.post), "Test Post")
+        self.assertEqual(str(self.post), "测试 Post")
 
     def test_increase_views(self):
         # 初始浏览量

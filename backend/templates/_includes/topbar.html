@@ -6,19 +6,13 @@
     <!-- 面包屑导航 -->
     <nav id="breadcrumb" aria-label="Breadcrumb">
         {% if breadcrumbs %}
-            {% if breadcrumbs|length == 1 %}
-                {% for name, url in breadcrumbs %}
-                    <span>{{ name }}</span>
-                {% endfor %}
-            {% else %}
-                {% for name, url in breadcrumbs %}
-                    {% if forloop.last %}
-                        <span>{{ name }}</span>
-                    {% else %}
-                        <span><a href="{{ url }}">{{ name }}</a></span>
-                    {% endif %}
-                {% endfor %}
-            {% endif %}
+            {% for item in breadcrumbs %}
+                {% if forloop.last %}
+                    <span>{{ item.title }}</span>
+                {% else %}
+                    <span><a href="{{ item.url }}">{{ item.title }}</a></span>
+                {% endif %}
+            {% endfor %}
         {% endif %}
     </nav>
     <!-- 侧边栏触发按钮 -->
@@ -27,8 +21,8 @@
     </button>
     <!-- 顶部栏标题 -->
     {% if breadcrumbs_mobile %}
-    {% for name in breadcrumbs_mobile %}
-    <div id="topbar-title">{{ name }}</div>
+    {% for item in breadcrumbs_mobile %}
+    <div id="topbar-title">{{ item.title }}</div>
     {% endfor %}
     {% endif %}
     <!-- 搜索触发按钮 -->

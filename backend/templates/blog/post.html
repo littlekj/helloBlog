@@ -60,12 +60,12 @@
             {% endif %}
 
             <!-- 阅读时长 -->
-            {% include "_includes/read-time.html" with content=post.body prompt=true %}
+            {% include "_includes/read-time.html" with content=post.rendered_body prompt=true %}
       </div>
     </header>
 
     <div class="content">
-      {{ post.body|safe }}
+      {{ post.rendered_body|safe }}
     </div>
 
     <div class="post-tail-wrapper text-muted">
@@ -224,5 +224,5 @@
 {% endblock %}
 
 {% block comments %}
-  {% include '_includes/comments.html' %}
+  {% include '_includes/comment-tk.html' %}
 {% endblock %}

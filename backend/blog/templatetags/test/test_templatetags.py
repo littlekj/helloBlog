@@ -1,13 +1,12 @@
 from django.test import TestCase, RequestFactory
 from unittest.mock import patch
 from django.utils import timezone
-from blog.models import Post, Category, Tag
+from blog.models import Post, Tag
 from blog.templatetags.blog_tags import show_recent_posts
 from blog.templatetags.blog_tags import show_trending_tags
 from blog.templatetags.blog_tags import calculate_read_time, share_detail
 from django.template import Context
 from django.core.cache import cache
-from datetime import timedelta
 from django.contrib.auth import get_user_model
 from urllib.parse import quote
 from django.urls import reverse
@@ -29,8 +28,6 @@ class ShowRecentPostsTest(TestCase):
 
         # 创建测试数据
         self.user = get_user_model().objects.create_user(username='testuser', password='testpassword')
-
-        now = timezone.now()
 
         for i in range(6):
             Post.objects.create(
@@ -116,7 +113,7 @@ class ShowTrendingTagsTest(TestCase):
     验证：
     - 返回结果是否包含指定数量的标签
     - 标签是否按 num_posts 降序排列
-    - 标签是否只包含 num_post > 0 的
+    - 是否只包含 num_posts > 0 的标签
     """
 
     def setUp(self):
@@ -247,7 +244,7 @@ class MetaDataTagTest(TestCase):
         request = self.factory.get(reverse('blog:index'))
         request.META['HTTP_USER_AGENT'] = 'Mozilla/5.0'
         context = Context({'request': request})
-        result = meta_data(context)
+        meta_data(context)
 
         self.assertIn('meta', context)
         self.assertEqual(context['meta']['title'], '羽毛笔轻轻划过')
@@ -256,7 +253,7 @@ class MetaDataTagTest(TestCase):
     def test_meta_on_detail_page(self):
         request = self.factory.get(reverse('blog:detail', kwargs={'slug': 'test-post'}))
         context = Context({'request': request})
-        result = meta_data(context)
+        meta_data(context)
 
         meta = context['meta']
         self.assertEqual(meta['title'], '测试标题')
@@ -264,27 +261,30 @@ class MetaDataTagTest(TestCase):
         self.assertIn('Python', meta['keywords'])
         self.assertEqual(meta['author'], self.author)
 
-    def test_meta_on_detail_page_post_not_found(self):
+    @patch('blog.templatetags.page_tags.logger.warning')
+    def test_meta_on_detail_page_post_not_found(self, mock_log):
         request = self.factory.get(reverse('blog:detail', kwargs={'slug': 'not-exist'}))
         context = Context({'request': request})
-        result = meta_data(context)
+        meta_data(context)
 
         meta = context['meta']
         self.assertEqual(meta['title'], '文章未找到')
         self.assertIn('不存在', meta['description'])
+        mock_log.assert_called_once()
 
     def test_is_mobile_flag(self):
         request = self.factory.get(reverse('blog:index'))
         request.META['HTTP_USER_AGENT'] = 'Mobile Safari'
         context = Context({'request': request})
-        result = meta_data(context)
+        meta_data(context)
 
         self.assertTrue(context['is_mobile'])
 
     def test_meta_has_full_url(self):
+        # 模拟一个使用 HTTPS 协议 的 GET 请求，而不是 HTTP
         request = self.factory.get(reverse('blog:index'), secure=True)
         context = Context({'request': request})
-        result = meta_data(context)
+        meta_data(context)
 
         self.assertIn('full_url', context['meta'])
-        self.assertTrue(context['meta']['full_url'].startswith('http'))
+        self.assertTrue(context['meta']['full_url'].startswith('https'))

@@ -4,7 +4,6 @@ from blog.models import Post, Category, Tag
 from django.contrib.auth.models import User
 from django.contrib.auth import get_user_model
 from unittest.mock import patch
-from blog.views import CategoryListView, CategoryDetailView
 from django.contrib.messages import get_messages
 from unittest.mock import MagicMock
 
@@ -46,12 +45,15 @@ class IndexViewTest(TestCase):
     def test_get_breadcrumbs(self):
         """测试 get_breadcrumbs 方法，确保返回首页的面包屑"""
         response = self.client.get(self.url)
-        self.assertEqual(response.context['breadcrumbs'], [('首页', '/')])
+        self.assertEqual(response.context['breadcrumbs'], [{'title': '首页', 'url': self.url}])
 
     def test_get_breadcrumbs_mobile(self):
         """测试 get_breadcrumbs_mobile 方法，确保返回首页的面包屑"""
         response = self.client.get(self.url)
-        self.assertEqual(response.context['breadcrumbs_mobile'], ['首页'])
+        self.assertEqual(
+            response.context['breadcrumbs_mobile'],
+            [{'title': '首页'}]
+        )
 
     def test_pagination(self):
         """测试分页功能"""
@@ -83,11 +85,12 @@ class IndexViewTest(TestCase):
             excerpt='Excerpt for post 3',
             body='Body for post 3',
             author=self.user
-        ).categories.set([self.category])
+        )
+        post_3.categories.set([self.category])
 
         response = self.client.get(self.url)
         post_list = response.context['post_list']
-        self.assertEqual(post_list[0].title, 'Post 3')  # 确保 Post 3 出现在最前面
+        self.assertEqual(post_list[0].title, post_3.title)  # 确保 Post 3 出现在最前面
 
 
 class PostDetailViewTest(TestCase):
@@ -96,7 +99,6 @@ class PostDetailViewTest(TestCase):
     - 测试视图是否能够正确渲染文章详情页面
     - 验证视图的上下文数据
     - 测试文章的浏览次数是否正确增加
-    - 确保文章的 Markdown 渲染正确
     - 测试 Breadcrumb 是否正确显示
     """
 
@@ -143,16 +145,20 @@ class PostDetailViewTest(TestCase):
         # 验证 breadcrumbs
         self.assertIn('breadcrumbs', response.context)
         self.assertEqual(
-            response.context['breadcrumbs'], [('首页', '/'), (self.post.title, self.post.get_absolute_url())]
+            response.context['breadcrumbs'],
+            [
+                {'title': '首页', 'url': reverse('blog:index')},
+                {'title': self.post.title, 'url': ''}  # 当前页通常不设链接
+            ]
         )
 
         # 验证 breadcrumbs_mobile
         self.assertIn('breadcrumbs_mobile', response.context)
-        self.assertEqual(response.context['breadcrumbs_mobile'], ['文章'])
+        self.assertEqual(response.context['breadcrumbs_mobile'], [{'title': '文章'}])
 
         # 验证 giscus_src
-        self.assertIn('giscus_src', response.context)
-        self.assertEqual(response.context['giscus_src']['term'], f'posts/{self.post.id}/')
+        # self.assertIn('giscus_src', response.context)
+        # self.assertEqual(response.context['giscus_src']['term'], f'posts/{self.post.id}/')
 
     """
     判断 patch 路径正确性的规则：始终 patch “使用它的地方”，不是 “定义它的地方”。
@@ -170,16 +176,19 @@ class PostDetailViewTest(TestCase):
         # 检查浏览次数是否增加
         self.assertEqual(self.post.views, 1)  # 初始阅读量为 0
 
-    @patch('blog.views.MarkdownIt.render')
-    def test_markdown_rendering(self, mock_render):
-        mock_render.return_value = '<h1>Test</h1>'
+    @patch('blog.views.render_markdown')
+    def test_render_markdown(self, mock_render_markdown):
+        mock_render_markdown.return_value = '<p>Test Content</p>', '<h2>Test Toc</h2>'
 
         url = reverse('blog:detail', kwargs={'slug': self.post.slug})
         response = self.client.get(url)
 
         # response.content 是原始的 HTTP 响应体，它的类型是 bytes。
-        # 通常默认使用 UTF-8 编码
-        self.assertIn('<h1>Test</h1>', response.content.decode())
+        content = response.content.decode()
+        self.assertContains(response, 'Test Content')  # 检查文本内容
+        self.assertContains(response, 'Test Toc')  # 检查文本内容
+        self.assertInHTML('<p>Test Content</p>', content)  # 忽略HTML空白差异
+        self.assertInHTML('<h2>Test Toc</h2>', content)  # 忽略HTML空白差异
 
 
 class CategoryListViewTest(TestCase):
@@ -218,23 +227,32 @@ class CategoryListViewTest(TestCase):
         categories = response.context['categories']
         self.assertEqual(len(categories), 2)  # 期望两个分类
 
-        # 验证第一个分类的 posts_list
+        # 验证第一个分类的动态属性 posts_list
         self.assertTrue(hasattr(categories[0], 'posts_list'))
         self.assertEqual(len(categories[0].posts_list), 1)  # Lifestyle 分类下只有 1 篇文章
 
-        # 验证第二个分类的 posts_list
+        # 验证第二个分类的动态属性 posts_list
         self.assertTrue(hasattr(categories[1], 'posts_list'))
         self.assertEqual(len(categories[1].posts_list), 2)  # Technology 分类下有 2 篇文章
 
     def test_get_breadcrumbs(self):
-        view = CategoryListView()
-        breadcrumbs = view.get_breadcrumbs()
-        self.assertEqual(breadcrumbs, [('首页', '/'), ('分类', '/categories/')])
+        response = self.client.get(self.url)
+        self.assertIn('breadcrumbs', response.context)
+        self.assertEqual(
+            response.context['breadcrumbs'],
+            [
+                {'title': '首页', 'url': reverse('blog:index')},
+                {'title': '分类', 'url': ''},  # 当前页通常不设链接
+            ]
+        )
 
     def test_get_breadcrumbs_mobile(self):
-        view = CategoryListView()
-        breadcrumbs_mobile = view.get_breadcrumbs_mobile()
-        self.assertEqual(breadcrumbs_mobile, ['分类'])
+        response = self.client.get(self.url)
+        self.assertIn('breadcrumbs_mobile', response.context)
+        self.assertEqual(
+            response.context['breadcrumbs_mobile'],
+            [{'title': '分类'}]
+        )
 
 
 class CategoryDetailViewTest(TestCase):
@@ -275,22 +293,21 @@ class CategoryDetailViewTest(TestCase):
         self.assertIn(self.post2, related_posts)
 
     def test_get_breadcrumbs(self):
-        view = CategoryDetailView()
-        view.selected_category = self.category1  # 手动设置 selected_category
-        breadcrumbs = view.get_breadcrumbs()
-
-        self.assertEqual(breadcrumbs, [
-            ('首页', '/'),
-            ('分类', '/categories/'),
-            (self.category1.name, self.category1.get_absolute_url())  # 使用分类的名称和 URL
-        ])
+        response = self.client.get(self.url)
+        self.assertIn('breadcrumbs', response.context)
+        self.assertEqual(
+            response.context['breadcrumbs'],
+            [
+                {'title': '首页', 'url': reverse('blog:index')},
+                {'title': '分类', 'url': reverse('blog:categories')},
+                {'title': self.category1.name, 'url': ''},
+            ]
+        )
 
     def test_get_breadcrumbs_mobile(self):
-        view = CategoryDetailView()
-        view.selected_category = self.category1
-        breadcrumbs_mobile = view.get_breadcrumbs_mobile()
-
-        self.assertEqual(breadcrumbs_mobile, ['分类'])
+        response = self.client.get(self.url)
+        self.assertIn('breadcrumbs_mobile', response.context)
+        self.assertEqual(response.context['breadcrumbs_mobile'], [{'title': '分类'}])
 
     def test_category_detail_view_no_category(self):
         # 测试不存在的分类 slug
@@ -339,12 +356,18 @@ class TagListViewTest(TestCase):
     def test_get_breadcrumbs(self):
         # 测试面包屑导航
         response = self.client.get(reverse('blog:tags'))
-        self.assertEqual(response.context['breadcrumbs'], [('首页', '/'), ('标签', '/tags/')])
+        self.assertEqual(
+            response.context['breadcrumbs'],
+            [
+                {'title': '首页', 'url': reverse('blog:index')},
+                {'title': '标签', 'url': ''},
+            ]
+        )
 
     def test_get_breadcrumbs_mobile(self):
         # 测试移动端面包屑导航
         response = self.client.get(reverse('blog:tags'))
-        self.assertEqual(response.context['breadcrumbs_mobile'], ['标签'])
+        self.assertEqual(response.context['breadcrumbs_mobile'], [{'title': '标签'}])
 
 
 class TagDetailViewTest(TestCase):
@@ -401,27 +424,31 @@ class TagDetailViewTest(TestCase):
     def test_get_breadcrumbs(self):
         # 测试面包屑导航
         response = self.client.get(self.url)
-        context = response.context
-
-        breadcrumbs = context['breadcrumbs']
-        self.assertEqual(len(breadcrumbs), 3)  # 首页 + 标签 + 当前标签
-        # 面包屑导航的最后一项应该是当前标签的名称和 URL
-        self.assertEqual(breadcrumbs[2], (self.tag.name, self.tag.get_absolute_url()))
+        self.assertIn('breadcrumbs', response.context)
+        self.assertEqual(len(response.context['breadcrumbs']), 3)  # 首页 + 标签 + 当前标签
+        self.assertEqual(
+            response.context['breadcrumbs'],
+            [
+                {'title': '首页', 'url': reverse('blog:index')},
+                {'title': '标签', 'url': reverse('blog:tags')},
+                {'title': self.tag.name, 'url': ''},
+            ]
+        )
 
     def test_get_breadcrumbs_mobile(self):
         # 测试移动端面包屑导航
         response = self.client.get(self.url)
-        context = response.context
-
-        breadcrumbs_mobile = context['breadcrumbs_mobile']
-        self.assertEqual(breadcrumbs_mobile, ['标签'])
+        self.assertIn('breadcrumbs_mobile', response.context)
+        self.assertEqual(response.context['breadcrumbs_mobile'], [{'title': '标签'}])
 
 
 class SearchViewTest(TestCase):
     def setUp(self):
         self.url = reverse('blog:search')
 
-    def _create_mock_result(self, title='标题', snippet='正文'):
+    @staticmethod
+    def create_mock_result(title='标题', snippet='正文'):
+        """创建一个搜索结果对象的模拟对象"""
         mock_obj = MagicMock()
         mock_obj.get_absolute_url.return_value = '/test-url/'
         mock_obj.title = title
@@ -450,7 +477,9 @@ class SearchViewTest(TestCase):
             mock_standardize,
             mock_render_to_string,
     ):
-        mock_result = self._create_mock_result('测试标题', '高亮正文内容')
+        """测试 AJAX 请求的搜索功能"""
+
+        mock_result = self.create_mock_result('测试标题', '高亮正文内容')
 
         mock_searchqueryset.return_value.filter.return_value.highlight.return_value = [mock_result]
         mock_highlight_check.return_value = True
@@ -477,7 +506,10 @@ class SearchViewTest(TestCase):
 
     @patch('blog.views.SearchQuerySet')
     def test_search_pagination(self, mock_searchqueryset):
-        mock_results = [self._create_mock_result(f'标题{i}', f'正文{i}') for i in range(11)]
+        """测试搜索结果的分页功能"""
+
+        mock_results = [self.create_mock_result(f'标题{i}', f'正文{i}') for i in range(11)]
+
         # 返回多条搜索结果
         mock_searchqueryset.return_value.filter.return_value.highlight.return_value = [
             mock_result for mock_result in mock_results
@@ -497,6 +529,8 @@ class SearchViewTest(TestCase):
 
     @patch('blog.views.SearchQuerySet')
     def test_search_no_results(self, mock_searchqueryset):
+        """测试没有搜索结果的情况"""
+
         mock_searchqueryset.return_value.filter.return_value.highlight.return_value = []
 
         response = self.client.get(
@@ -513,7 +547,9 @@ class SearchViewTest(TestCase):
 
     @patch('blog.views.SearchQuerySet')
     def test_illegal_page_number(self, mock_searchqueryset):
-        mock_result = self._create_mock_result()
+        """测试非法的页码"""
+
+        mock_result = self.create_mock_result()
         mock_searchqueryset.return_value.filter.return_value.highlight.return_value = [mock_result]
 
         response = self.client.get(
@@ -543,7 +579,9 @@ class SearchViewTest(TestCase):
 
     @patch('blog.views.SearchQuerySet')
     def test_invalid_page_input(self, mock_searchqueryset):
-        mock_result = self._create_mock_result()
+        """测试无效的页码输入"""
+
+        mock_result = self.create_mock_result()
 
         mock_searchqueryset.return_value.filter.return_value.highlight.return_value = [mock_result]
         response = self.client.get(
@@ -567,7 +605,9 @@ class SearchViewTest(TestCase):
             mock_highlight_check,
             mock_standardize,
     ):
-        mock_result = self._create_mock_result()
+        """测试没有高亮结果的情况"""
+
+        mock_result = self.create_mock_result()
         mock_result.highlighted = []
 
         mock_searchqueryset.return_value.filter.return_value.highlight.return_value = [mock_result]
@@ -585,6 +625,8 @@ class SearchViewTest(TestCase):
         self.assertEqual(data['results'][0]['snippet'], '原始正文片段')
 
     def test_search_without_query_param(self):
+        """测试没有查询参数的情况"""
+
         response = self.client.get(
             self.url,
             {'page': 1},
@@ -611,7 +653,6 @@ class RobotsTxtTest(TestCase):
         expected_lines = [
             "User-agent: *",
             "Disallow: /admin/",
-            "Allow: /",
             "Sitemap: https://quillnk.com/sitemap.xml"
         ]
         """

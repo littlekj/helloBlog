@@ -17,6 +17,8 @@ django-haystack = "*"
 elasticsearch = "<8,>=7"
 mysqlclient = "*"
 whitenoise = "*"
+requests = "*"
+coverage = "*"
 
 [dev-packages]
 

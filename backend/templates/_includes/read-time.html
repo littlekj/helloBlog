@@ -1,5 +1,5 @@
 {% load blog_tags %}
-{% calculate_read_time content=post.body wpm=320 %}
+{% calculate_read_time content=post.rendered_body wpm=260 %}
 
 <!-- 计算文章阅读时间，并在工具提示中显示字数 -->
 <span

@@ -3,7 +3,7 @@
 {% meta_data %}
 <head>
     <!-- 定义页面字符编码为 UTF-8 -->
-    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+    <meta content="text/html; charset=utf-8" http-equiv="Content-Type">
 
     <!-- 设置页面标题 -->
     {% if meta.type == 'website' %}
@@ -98,10 +98,7 @@
     <!-- 网站验证 -->
     <meta content="G8IagGEYlljit8Dc9rv-Xb9ySJcs-TSISZHAQOS4loM" name="google-site-verification">
 
-    <meta name="baidu-site-verification" content="codeva-LGowtw7Jhb" />
-
-    <meta content="text/html;charset=gb2312" http-equiv="Content-Type"/>
-    <meta content="QXP2ZfzALN" name="sogou_site_verification"/>
+    <meta content="codeva-LGowtw7Jhb" name="baidu-site-verification"/>
 
     <!-- 网站图标 -->
     <link href="{% static 'assets/img/favicons/apple-touch-icon.png' %}" rel="apple-touch-icon" sizes="180x180">
@@ -117,10 +114,10 @@
     <meta content="{% static 'assets/img/favicons/browserconfig.xml' %}" name="msapplication-config">
 
     <!-- 预连接资源 -->
-<!--    <link href="https://fonts.googleapis.com" rel="preconnect">-->
-<!--    <link href="https://fonts.googleapis.com" rel="dns-prefetch">-->
-<!--    <link crossorigin href="https://fonts.gstatic.com" rel="preconnect">-->
-<!--    <link crossorigin href="https://fonts.gstatic.com" rel="dns-prefetch">-->
+    <!--    <link href="https://fonts.googleapis.com" rel="preconnect">-->
+    <!--    <link href="https://fonts.googleapis.com" rel="dns-prefetch">-->
+    <!--    <link crossorigin href="https://fonts.gstatic.com" rel="preconnect">-->
+    <!--    <link crossorigin href="https://fonts.gstatic.com" rel="dns-prefetch">-->
     <link href="https://cdnjs.cloudflare.com" rel="preconnect">
     <link href="https://cdnjs.cloudflare.com" rel="dns-prefetch">
     <link href="https://cdn.jsdelivr.net" rel="preconnect">
@@ -136,16 +133,16 @@
 
     <link href="{% static 'assets/css/custom-style.css' %}" rel="stylesheet" type="text/css">
 
-<!--    <link href="https://fonts.googleapis.com/css2?family=Lato:wght@300;400&family=Source+Sans+Pro:wght@400;600;700;900&display=swap"-->
-<!--          rel="stylesheet">-->
+    <!--    <link href="https://fonts.googleapis.com/css2?family=Lato:wght@300;400&family=Source+Sans+Pro:wght@400;600;700;900&display=swap"-->
+    <!--          rel="stylesheet">-->
     <link crossorigin="anonymous" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css"
           referrerpolicy="no-referrer" rel="stylesheet"/>
     <noscript>
         <link crossorigin="anonymous" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css"
               referrerpolicy="no-referrer" rel="stylesheet"/>
     </noscript>
-<!--    <link href="https://cdn.jsdelivr.net/npm/loading-attribute-polyfill@2.1.1/dist/loading-attribute-polyfill.min.css"-->
-<!--          rel="stylesheet">-->
+    <!--    <link href="https://cdn.jsdelivr.net/npm/loading-attribute-polyfill@2.1.1/dist/loading-attribute-polyfill.min.css"-->
+    <!--          rel="stylesheet">-->
 
     {% if meta.type == 'article' %}
     <link href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism.min.css" rel="stylesheet"/>
@@ -166,5 +163,6 @@
         display: block !important; /* 显示特定页码 */
       }
     }
+
     </style>
 </head>

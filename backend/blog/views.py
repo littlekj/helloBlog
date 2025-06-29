@@ -3,13 +3,11 @@ from django.shortcuts import render, redirect
 from blog.models import Post, Category, Tag
 from django.shortcuts import get_object_or_404
 from django.utils.functional import cached_property
-import re
-from markdown_it import MarkdownIt
-from blog.utils import generate_toc, replace_markdown_symbols, custom_slugify
-from mdit_py_plugins.anchors import anchors_plugin
+from blog.utils import render_markdown
 
 from django.views.generic import DetailView
 from django.views.generic import ListView
+from django.urls import reverse
 from django.db.models import Case, When, Value, F
 
 from django.contrib import messages
@@ -40,13 +38,27 @@ load_dotenv()
 #     })
 
 
-# 面包屑导航
 class BreadcrumbMixin:
+    """
+    为视图提供通用的面包屑导航支持。
+    提供 PC 和移动端两套 breadcrumbs，上下文变量分别为：
+    - breadcrumbs
+    - breadcrumbs_mobile
+    """
+
     def get_breadcrumbs(self):
+        """
+        返回 PC 端的面包屑导航列表。
+        子类可重写此方法，自定义导航结构。
+        """
         return []
 
     def get_breadcrumbs_mobile(self):
-        return []
+        """
+        返回移动端的面包屑导航列表。
+        默认与 PC 端相同，可在子类中重写。
+        """
+        return self.get_breadcrumbs()
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -86,18 +98,20 @@ class IndexView(BreadcrumbMixin, ListView):
         return queryset.annotate(  # 使用 annotate() 方法添加额外的字段
             ordering_time=Case(
                 When(modified_time__isnull=False, then=F('modified_time')),
-                When(modified_time__isnull=False, then=F('created_time')),
+                When(modified_time__isnull=True, then=F('created_time')),
                 default=F('created_time'),
             )
         ).order_by('-ordering_time')
 
     def get_breadcrumbs(self):
         return [
-            ('首页', '/'),
+            {'title': '首页', 'url': reverse('blog:index')},
         ]
 
     def get_breadcrumbs_mobile(self):
-        return ['首页']
+        return [
+            {'title': '首页'}
+        ]
 
 
 class PostDetailView(BreadcrumbMixin, DetailView):
@@ -105,84 +119,46 @@ class PostDetailView(BreadcrumbMixin, DetailView):
     template_name = 'blog/post.html'
     context_object_name = 'post'
 
-    def get_object(self, queryset=None):
-        # 优化查询，关联外键字段
+    def get_queryset(self):
+        # 获取查询集：优化查询，关联外键字段
         queryset = Post.objects.select_related('author').prefetch_related('categories', 'tags')
+        return queryset
+
+    def get_object(self, queryset=None):
+        """重写方法，获取特定文章对象"""
+        queryset = self.get_queryset()
         return get_object_or_404(queryset, slug=self.kwargs.get('slug'))
 
-    # 生成渲染模板时需要的上下文数据
     def get_context_data(self, **kwargs):
+        """重写方法，添加额外的上下文数据"""
         context = super().get_context_data(**kwargs)  # 返回包含上下文数据的的字典
         post = self.object  # 获取当前文章对象
 
         # 阅读量 +1
         post.increase_views()
 
-        # 替换 Markdown 标题中的特殊符号
-        post.body = replace_markdown_symbols(post.body)
-
-        # 创建 MarkdownIt 实例
-        md = MarkdownIt('gfm-like').use(
-            anchors_plugin,
-            min_level=2,
-            max_level=4,
-            slug_func=custom_slugify,
-            permalink=True,
-            permalinkSymbol='',
-            permalinkBefore=False,
-            permalinkSpace=True
-        )
-
-        # 生成目录
-        post.toc = generate_toc(md, post.body)
-        # print("post.toc:", post.toc)
-        # 无缓存使用原始的正文渲染内容
-        if not post.rendered_body:
-            rendered_body = md.render(post.body)
-            post.rendered_body = rendered_body
-            post.save(update_fields=['rendered_body'])  # 保存更改到数据库
-            post.refresh_from_db()  # 刷新数据库中的数据，避免 Django 缓存之前的对象状态
-
-        # md.render(post.body) 虽然已渲染，但数据库数据Django同步最新，post.body 变成了未渲染的状态
-        # 所以，统一使用 rendered_body 属性来获取渲染后的内容
-
-        # 使用缓存的渲染内容
-        post.body = post.rendered_body
-
-        # Prism.js 添加类异常，为代码块添加行号类
-        # post.body = post.body.replace('<pre><code', '<pre class="line-numbers"><code')
+        # 如果文章的正文或目录为空，则使用 Markdown 渲染器进行渲染
+        if not post.rendered_body or not post.toc:
+            post.rendered_body, post.toc = render_markdown(post.body)
 
         # 将处理后的 post 对象传递给模板
         context['post'] = post
 
-        # 添加 Giscus 小部件相关的变量
-        giscus_src = {
-            "origin": self.request.build_absolute_uri(),  # 当前页面的完整 URL
-            "repo": "littlekj/helloBlog",  # GitHub 仓库的名称
-            "repoId": "R_kgDOMfjaxQ",  # GitHub 仓库的 ID
-            "category": "Announcements",  # 评论分类
-            "categoryId": "DIC_kwDOMfjaxc4Cie3I",  # 评论分类的 ID
-            "theme": "light",  # 主题颜色
-            "reactionsEnabled": "1",  # 是否启用表情反应
-            "emitMetadata": "0",  # 是否发送元数据
-            "inputPosition": "top",  # 输入框的位置
-            "term": f"posts/{post.id}/",  # 与当前页面的唯一标识符，用于映射评论与具体的页面或路径
-            "description": post.title,  # 评论的描述
-            "backLink": self.request.build_absolute_uri()  # 返回链接
-        }
-        # 将 Giscus 小部件相关的变量添加到上下文中
-        context['giscus_src'] = giscus_src
-
         return context
 
     def get_breadcrumbs(self):
+        post = getattr(self, 'object', None)
+        if not post:
+            post = self.get_object()
         return [
-            ('首页', '/'),
-            (self.object.title, self.object.get_absolute_url()),
+            {'title': '首页', 'url': reverse('blog:index')},
+            {'title': post.title, 'url': ''}  # 当前页通常不设链接
         ]
 
     def get_breadcrumbs_mobile(self):
-        return ['文章']
+        return [
+            {'title': '文章'}
+        ]
 
 
 class CategoryListView(BreadcrumbMixin, ListView, ):
@@ -205,12 +181,14 @@ class CategoryListView(BreadcrumbMixin, ListView, ):
 
     def get_breadcrumbs(self):
         return [
-            ('首页', '/'),
-            ('分类', '/categories/'),
+            {'title': '首页', 'url': reverse('blog:index')},
+            {'title': '分类', 'url': ''},  # 当前页通常不设链接
         ]
 
     def get_breadcrumbs_mobile(self):
-        return ['分类']
+        return [
+            {'title': '分类'}
+        ]
 
 
 class CategoryDetailView(BreadcrumbMixin, ListView):
@@ -236,13 +214,15 @@ class CategoryDetailView(BreadcrumbMixin, ListView):
 
     def get_breadcrumbs(self):
         return [
-            ('首页', '/'),
-            ('分类', '/categories/'),
-            (self.selected_category.name, self.selected_category.get_absolute_url()),
+            {'title': '首页', 'url': reverse('blog:index')},
+            {'title': '分类', 'url': reverse('blog:categories')},
+            {'title': self.selected_category.name, 'url': ''},
         ]
 
     def get_breadcrumbs_mobile(self):
-        return ['分类']
+        return [
+            {'title': '分类'}
+        ]
 
 
 class TagListView(BreadcrumbMixin, ListView):
@@ -258,12 +238,14 @@ class TagListView(BreadcrumbMixin, ListView):
 
     def get_breadcrumbs(self):
         return [
-            ('首页', '/'),
-            ('标签', '/tags/'),
+            {'title': '首页', 'url': reverse('blog:index')},
+            {'title': '标签', 'url': ''},
         ]
 
     def get_breadcrumbs_mobile(self):
-        return ['标签']
+        return [
+            {'title': '标签'}
+        ]
 
 
 class TagDetailView(BreadcrumbMixin, ListView):
@@ -301,13 +283,15 @@ class TagDetailView(BreadcrumbMixin, ListView):
 
     def get_breadcrumbs(self):
         return [
-            ('首页', '/'),
-            ('标签', '/tags/'),
-            (self.selected_tag.name, self.selected_tag.get_absolute_url()),
+            {'title': '首页', 'url': reverse('blog:index')},
+            {'title': '标签', 'url': reverse('blog:tags')},
+            {'title': self.selected_tag.name, 'url': ''},
         ]
 
     def get_breadcrumbs_mobile(self):
-        return ['标签']
+        return [
+            {'title': '标签'}
+        ]
 
 
 class ArchiveView(BreadcrumbMixin, ListView):
@@ -343,12 +327,14 @@ class ArchiveView(BreadcrumbMixin, ListView):
 
     def get_breadcrumbs(self):
         return [
-            ('首页', '/'),
-            ('归档', '/archives/'),
+            {'title': '首页', 'url': reverse('blog:index')},
+            {'title': '归档', 'url': ''},
         ]
 
     def get_breadcrumbs_mobile(self):
-        return ['归档']
+        return [
+            {'title': '归档'}
+        ]
 
 
 class AboutView(BreadcrumbMixin, TemplateView):
@@ -356,12 +342,14 @@ class AboutView(BreadcrumbMixin, TemplateView):
 
     def get_breadcrumbs(self):
         return [
-            ('首页', '/'),
-            ('关于', '/about/'),
+            {'title': '首页', 'url': reverse('blog:index')},
+            {'title': '关于', 'url': ''},
         ]
 
     def get_breadcrumbs_mobile(self):
-        return ['关于']
+        return [
+            {'title': '关于'}
+        ]
 
 
 # def search(request):
@@ -388,14 +376,14 @@ def search(request):
     # 从请求中获取当前页码，如果没有提供页码，默认设置为 1
     page_number = request.GET.get('page', 1)
 
-    # sqs = SearchQuerySet().filter(content=query).highlight()
-    # sqs = SearchQuerySet().filter(content__exact=query).highlight()  # content_exact 表示精确匹配，要求索引中的内容完全等于关键词，过于严格
-    sqs = SearchQuerySet().filter(content=Exact(query)).highlight()  # 整个关键词作为单一的短语进行匹配，而不会分词
-
-    # 使用 Django 的分页器创建分页对象，假设每页显示 10 条结果
-    paginator = Paginator(sqs, 10)
-
     try:
+        # sqs = SearchQuerySet().filter(content=query).highlight()
+        # sqs = SearchQuerySet().filter(content__exact=query).highlight()  # content_exact 表示精确匹配，要求索引中的内容完全等于关键词，过于严格
+        sqs = SearchQuerySet().filter(content=Exact(query)).highlight()  # 整个关键词作为单一的短语进行匹配，而不会分词
+
+        # 使用 Django 的分页器创建分页对象，假设每页显示 10 条结果
+        paginator = Paginator(sqs, 10)
+
         # 尝试获取用户请求的页码对应的分页内容
         page_obj = paginator.page(page_number)
     except PageNotAnInteger:
@@ -420,7 +408,6 @@ def search(request):
         'tags': ', '.join([tag.name for tag in result.object.tags.all()]),
         'snippet': (
             normalize_highlight(result.highlighted[0].split('\n')[1:])  # 高亮内容匹配标题的情况
-            # if result.highlighted and (query in result.object.title)
             if is_highlight_title_first(result.highlighted, result.object.title)
             else (
                 normalize_highlight(result.highlighted[0])  # 高亮内容不匹配标题的情况
@@ -429,6 +416,9 @@ def search(request):
             )
         )
     } for result in page_obj]
+
+    # for result in page_obj:
+    #     print("result.highlighted:", result.highlighted)
 
     data = {
         'query': query,
@@ -462,7 +452,6 @@ def robots_txt(request):
     lines = [
         "User-agent: *",
         "Disallow: /admin/",
-        "Allow: /",
         "Sitemap: https://quillnk.com/sitemap.xml"
     ]
 

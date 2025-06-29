@@ -2,11 +2,13 @@ from django import template
 from django.utils import translation
 from django.utils.translation import gettext
 from django.urls import resolve
-from blog.models import Post, Category, Tag
+from blog.models import Post
 import os
 from django.conf import settings
+import logging
 
 register = template.Library()
+logger = logging.getLogger(__name__)
 
 
 @register.simple_tag(takes_context=True)
@@ -50,14 +52,20 @@ def meta_data(context):
     添加页面元数据
     """
     request = context['request']
-    current_url_name = resolve(request.path_info).url_name  # 获取当前URL模式的名称
+    resolver_match = resolve(request.path_info)
+    current_url_name = resolver_match.url_name  # 获取当前URL模式的名称
     full_url = request.build_absolute_uri()
     # print("full_url:", full_url)
+
+    # 初始化 meta 字段
+    context.setdefault('meta', {})
 
     # 获取用户设备信息
     user_agent = request.META.get('HTTP_USER_AGENT', '')
     is_mobile = 'mobile' in user_agent.lower()
+    context['is_mobile'] = is_mobile
 
+    # 构造 meta 数据
     if current_url_name == 'index':
         meta = {
             'title': '羽毛笔轻轻划过',
@@ -66,7 +74,7 @@ def meta_data(context):
             'keywords': 'Python, Web编程, 技术博客, 后端开发',
         }
     elif current_url_name == 'detail':
-        slug = resolve(request.path_info).kwargs.get('slug')
+        slug = resolver_match.kwargs.get('slug')
         try:
             current_post = Post.objects.get(slug=slug)
             if current_post.tags.exists():
@@ -82,7 +90,8 @@ def meta_data(context):
                 'published_time': current_post.modified_time,
                 'created_time': current_post.created_time,
             }
-        except Post.DoesNotExist:
+        except Post.DoesNotExist:  # type: ignore[attr-defined]
+            logger.warning(f"Post with slug {slug} does not exist.")
             meta = {
                 'title': '文章未找到',
                 'description': '您访问的文章不存在。',
@@ -133,13 +142,9 @@ def meta_data(context):
             'description': '这是蒯林柯的个人博客，记录和分享与 Python、Web 编程等相关的技术实践内容(•̀ᴗ-)✧',
         }
 
-    # 添加当前URL到meta数据
-    meta['full_url'] = full_url
-
-    context.update({
-        'meta': meta,
-        'is_mobile': is_mobile,
-    })
+    # 添加 meta 字段到上下文
+    context['meta'].update(meta)
+    context['meta']['full_url'] = full_url
 
     return ''
 

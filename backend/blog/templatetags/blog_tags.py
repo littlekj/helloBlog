@@ -76,10 +76,8 @@ def calculate_read_time(context, content=None, wpm=300):
     # 移除 HTML 标签，获取纯文本内容
     text_content = strip_tags(content)
 
-    # 正确匹配英文单词 + 单个中文字符
     # \w+ 匹配英文单词或数字（连贯字符），[\u4e00 -\u9fff] 匹配单个中文汉字。
     # Python 的 re 默认是 ASCII 模式，[a-zA-Z0-9_]+：比 \w+ 更明确，只匹配字母、数字和下划线。
-    # words = len(re.findall(r'\w+|[\u4e00-\u9fff]', text_content))
     words = len(re.findall(r'[a-zA-Z0-9_]+|[\u4e00-\u9fff]', text_content))
 
     # 计算阅读时间（分钟），向上取整，确保短文章至少 1 分钟
@@ -137,8 +135,6 @@ def share_detail(context, post_pk):
     # 更新上下文
     context.update({
         'share_platforms': share_platforms,
-        # 'post_title_encoded': post_title_encoded,
-        # 'post_url_encoded': post_url_encoded,
         'copy_link_tooltip': '复制链接',
         'copy_link_success': '链接复制成功！',
     })

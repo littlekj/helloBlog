@@ -6,21 +6,21 @@
 </div>
 
 <!-- 引入 Giscus 的客户端脚本 -->
-<script src="https://giscus.app/client.js"
-        data-repo="littlekj/helloBlog"
-        data-repo-id="R_kgDOMfjaxQ"
+<script async
+        crossorigin="anonymous"
         data-category="Announcements"
         data-category-id="DIC_kwDOMfjaxc4Cie3I"
-        data-mapping="og:title"
-        data-strict="0"
-        data-reactions-enabled="1"
         data-emit-metadata="1"
         data-input-position="top"
-        data-theme="preferred_color_scheme"
         data-lang="zh-CN"
         data-loading="lazy"
-        crossorigin="anonymous"
-        async>
+        data-mapping="og:title"
+        data-reactions-enabled="1"
+        data-repo="littlekj/helloBlog"
+        data-repo-id="R_kgDOMfjaxQ"
+        data-strict="0"
+        data-theme="preferred_color_scheme"
+        src="https://giscus.app/client.js">
 </script>
 
 <script type="text/javascript">
@@ -71,21 +71,6 @@
       setGiscusTheme(initTheme);
     })();
 </script>
-
-<!--使用 MutationObserver 动态监听 Giscus 的加载-->
-<!--<script>-->
-<!--    let isGiscusFrameLoaded = false; // 标记 Giscus iframe 是否加载完成-->
-
-<!--    // 监听 iframe 的加载-->
-<!--    const observer = new MutationObserver(() => {-->
-<!--        const giscusFrame = document.querySelector('.giscus-frame');-->
-<!--        if (giscusFrame) {-->
-<!--            isGiscusFrameLoaded = true; // 标记为已加载-->
-<!--            observer.disconnect(); // 停止观察-->
-<!--        }-->
-<!--    });-->
-<!--    observer.observe(document.body, { childList: true, subtree: true });-->
-<!--</script>-->
 
 <script>
     // 获取 Giscus iframe 元素

@@ -4,41 +4,29 @@
   class="
     d-flex flex-column justify-content-center text-muted
     flex-lg-row justify-content-lg-between align-items-lg-center pb-lg-3"
-  style="font-size: 12px;"
->
+  style="font-size: 12px;">
+
   <p>
-    {{ 'Copyright ©' }}
-    {% now "Y" as current_year %}
-    <time>{{ current_year }}</time>
-      <a href="#">蒯林柯 </a>
+      Copyright ©
+      {% now "Y" as current_year %}
+      <time>{{ current_year }}</time>
+      <a href="#"> </a>
       <span
         data-bs-toggle="tooltip"
         data-bs-placement="top"
-        title="{{ copyright_verbose }}"
       >
-      {{ "版权所有 | " }}
+      {{ "蒯林柯 版权所有 | " }}
       <a href="https://beian.miit.gov.cn/#/Integrated/index">{{ "豫ICP备2024085836号"}}</a>
       </span>
   </p>
-
   <p>
-      {% with platform='Jekyll' theme='Chirpy' %}
-      基于
-      <a
+      <a href="https://github.com/cotes2020/jekyll-theme-chirpy"
         data-bs-toggle="tooltip"
         data-bs-placement="top"
-        title="{{ theme_version }}"
-        href="https://github.com/cotes2020/jekyll-theme-chirpy"
+        title=""
         target="_blank"
         rel="noopener"
-      >
-          {{ platform }} {{ theme }}
-      </a>
-      主题和
-      <a
-        href="https://www.djangoproject.com/"
-      >Django </a>
-      框架
-      {% endwith %}
+      ></a>
+      <a href="https://www.djangoproject.com/"></a>
   </p>
 </footer>

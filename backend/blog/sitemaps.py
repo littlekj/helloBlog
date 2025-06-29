@@ -15,7 +15,8 @@ class PostSitemap(Sitemap):
         # 返回需要展示的文章
         return Post.objects.all().order_by('-modified_time')
 
-    def lastmod(self, obj):
+    @staticmethod
+    def lastmod(obj):
         # 返回文章的最后修改时间
         return obj.modified_time if obj.modified_time else obj.created_time
 

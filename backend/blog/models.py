@@ -7,9 +7,9 @@ from markdown_it import MarkdownIt
 from blog.utils import generate_summary, slugify_translate
 from django.db.models import F
 from django.utils.crypto import get_random_string
+from django.db.models.signals import pre_save
+from django.dispatch import receiver
 
-
-# Create your models here.
 
 class Category(models.Model):
     """创建文章分类模型类"""
@@ -22,6 +22,9 @@ class Category(models.Model):
 
     # 缓存路径
     path = models.CharField(max_length=255, blank=True, editable=False)
+
+    # 显示声明管理器，用于管理模型实例
+    objects = models.Manager()
 
     class Meta:
         verbose_name = '分类'  # 定义模型的单数形式名称
@@ -59,6 +62,9 @@ class Tag(models.Model):
     """创建文章标签模型类"""
     name = models.CharField(max_length=100, unique=True)
     slug = models.SlugField(max_length=100, unique=True, blank=True, null=True)
+
+    # 显示声明管理器，用于管理模型实例
+    objects = models.Manager()
 
     class Meta:
         verbose_name = '标签'
@@ -128,6 +134,9 @@ class Post(models.Model):
     # 新增一个字段，用于存储文章渲染后的正文内容
     rendered_body = models.TextField(editable=False, blank=True)
 
+    # 显示声明管理器，用于管理模型实例
+    objects = models.Manager()
+
     class Meta:
         verbose_name = '文章'
         verbose_name_plural = verbose_name
@@ -195,13 +204,21 @@ class Post(models.Model):
         self.save(update_fields=['views'])
 
 
-from django.db.models.signals import pre_save
-from django.dispatch import receiver
-
-
-@receiver(pre_save, sender=Post)
-def set_excerpt(sender, instance, **kwargs):
+@receiver(pre_save, sender=Post)  # 注册信号接收器
+def set_excerpt(instance, **kwargs):
+    """
+    在 Post 保存前自动生成摘要
+    :param instance: Post 实例
+    :param kwargs: 其他参数
+    """
+    # 检查是否已存在摘要（避免覆盖用户手动设置的摘要）
     if not instance.excerpt:
-        md = MarkdownIt()
-        html = md.render(instance.body)
+        # 获取渲染后的正文内容
+        if not instance.rendered_body:
+            md = MarkdownIt()
+            instance.rendered_body = md.render(instance.body)
+
+        html = instance.rendered_body
+
+        # 生成摘要（120个字符）
         instance.excerpt = generate_summary(html, 120)

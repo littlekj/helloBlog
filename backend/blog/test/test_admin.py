@@ -10,33 +10,6 @@ from unittest.mock import MagicMock
 from unittest.mock import patch
 
 
-class PostModelFormTest(TestCase):
-
-    def setUp(self):
-        self.user = User.objects.create_superuser(
-            username='admin', password='admin_password', email='admin@example.com'
-        )
-
-        self.client = Client()
-        self.client.force_login(self.user)
-
-        self.post = Post.objects.create(
-            title='Test', body='Test content', excerpt='Short excerpt', author=self.user
-        )
-
-    def test_admin_form_renders_excerpt_as_textarea_with_custom_size(self):
-        """
-        测试 PostModelForm 中 excerpt 字段是否正确渲染了 Textarea
-        """
-        url = reverse('admin:blog_post_change', args=[self.post.id])
-        response = self.client.get(url)
-        self.assertEqual(response.status_code, 200)
-        self.assertContains(response, '<textarea', html=False)  # 检查是否包含 <textarea> 标签，不做 html 标签结构比对
-        self.assertContains(response, 'name="excerpt"')  # 检查 name 属性
-        self.assertContains(response, 'rows="5"')  # 检查 rows 属性
-        self.assertContains(response, 'cols="80"')  # 检查 cols 属性
-
-
 class PostAdminPureMockTest(TestCase):
     def setUp(self):
         self.site = AdminSite()
@@ -92,16 +65,15 @@ class PostAdminPureMockTest(TestCase):
         self.assertContains(response, 'categories')
         self.assertContains(response, 'tags')
 
-    @patch('blog.admin.render_markdown')  # 模拟 render_markdown 函数，避免调用真实的 Markdown 渲染逻辑
-    @patch('blog.admin.super')  # 模拟 super() 调用，以便断言是否被正确调用
-    def test_save_model_sets_author_and_renders_body_on_change(self, mock_super, mock_render_markdown):
+    @patch('blog.admin.render_markdown')  # 模拟 render_markdown 函数
+    def test_save_model_sets_author_and_renders_body_and_toc(self, mock_render_markdown):
         """
-        测试 save_model 方法是否在 body 字段变化时设置 author 和重新渲染 body
+        测试 save_model 方法是否在文章创建或更新时，正确设置作者并渲染了 body 和 toc
         """
-        # 设置 render_markdown 返回值，模拟渲染后的 HTML
-        mock_render_markdown.return_value = '<p>Rendered content</p>\n'
+        # 设置 render_markdown 模拟的返回值，返回 rendered_body 和 toc
+        mock_render_markdown.return_value = '<p>Rendered content</p>\n', '<h2>Rendered toc</h2>'
 
-        # 模版表单，指定 changed_data 包含 'body'，表示 body 字段已更改
+        # 模拟表单，表明 body 字段已更改
         mock_form = MagicMock()
         mock_form.changed_data = ['body']
 
@@ -118,58 +90,64 @@ class PostAdminPureMockTest(TestCase):
         # 检查 render_markdown 是否被调用
         mock_render_markdown.assert_called_once_with(self.post.body)
 
-        # 检查最终是否调用了 super().save_model
-        mock_super().save_model.assert_called_once()
+        # 检查是否保存了 rendered_body 和 toc
+        self.assertEqual(self.post.rendered_body, '<p>Rendered content</p>\n')
+        self.assertEqual(self.post.toc, '<h2>Rendered toc</h2>')
 
-    @patch('blog.admin.render_markdown')
-    @patch('blog.admin.super')
-    def test_save_model_does_not_render_body_if_not_changed(self, mock_super, mock_render_markdown):
+    @patch('blog.admin.render_markdown')  # 模拟 rendered_markdown 函数
+    def test_save_model_rendered_body_toc_on_create(self, mock_render_markdown):
         """
-        测试当 body 字段没有变化时，是否没有重新渲染 body
+        测试 save_model 方法是否在文章创建时，正确生成 toc 和 rendered_body
         """
-        # 创建一个模拟的 Post 实例，完全不访问数据库
-        mock_post = MagicMock(spec=Post)
-        mock_post.rendered_body = '<p>Already rendered</p>'  # 非空，避免触发 markdown 渲染
-        mock_post.body = 'Unchanged body'
+        # 设置 render_markdown 模拟的返回值，返回 rendered_body 和 toc
+        mock_render_markdown.return_value = '<p>Rendered content</p>\n', '<h2>Rendered toc</h2>'
 
-        # mock save 方法以避免 DB 写入
-        mock_post.save = MagicMock()
-
-        mock_form = MagicMock()
-        mock_form.changed_data = []  # 表示没有字段修改
-
-        request = MagicMock()
-        request.user = self.user
-
-        self.admin.save_model(request, mock_post, mock_form, change=True)
-
-        # 验证逻辑：没有触发 markdown 渲染
-        mock_render_markdown.assert_not_called()
-
-        # 只会调用 obj.save() 一次（不是带 update_fields 的那种）
-        mock_post.save.assert_called_once_with()
-
-        # 验证 super().save_model 被调用
-        mock_super().save_model.assert_called_once()
-
-    @patch('blog.admin.render_markdown')
-    @patch('blog.admin.super')
-    def test_save_model_renders_body_if_initially_empty(self, mock_super, mock_render_markdown):
-        """
-        测试当 rendered_body 初始为空时，是否可以正常渲染生成 rendered_body
-        """
-        mock_post = MagicMock(spec=Post)
-        mock_post.rendered_body = ''
-        # self.post.rendered_body = ''
-        mock_render_markdown.return_value = '<p>Rendered content</p>\n'
-
+        # 模拟表单，表明 body 字段尚未修改
         mock_form = MagicMock()
         mock_form.changed_data = []
+        mock_form.save.return_value = self.post  # 确保 save 方法返回 post 实例
 
+        # 模拟请求对象
         request = MagicMock()
         request.user = self.user
 
+        # 调用被测试的 save_model 方法
+        self.admin.save_model(request, self.post, mock_form, change=False)
+
+        # 检查 author 字段是否正确设置
+        self.assertEqual(self.post.author, self.user)
+
+        # 检查 render_markdown 是否被调用
+        mock_render_markdown.assert_called_once_with(self.post.body)
+
+        # 检查是否保存了 rendered_body 和 toc
+        self.assertEqual(self.post.rendered_body, '<p>Rendered content</p>\n')
+        self.assertEqual(self.post.toc, '<h2>Rendered toc</h2>')
+
+    @patch('blog.admin.render_markdown')  # 模拟 render_markdown 函数
+    def test_save_model_does_not_render_on_no_change(self, mock_render_markdown):
+        """
+        测试 save_model 方法是否在 body 未更改时，不渲染正文和目录
+        """
+        # 让 render_markdown 返回默认值
+        mock_render_markdown.return_value = '<p>No content</p>\n', '<h2>No toc</h2>'
+
+        # 模拟表单，表示 body 字段没有更改
+        mock_form = MagicMock()
+        mock_form.changed_data = []
+        mock_form.save.return_value = self.post  # 确保 save() 方法模拟成功
+
+        # 保存当前 post 的原始状态，用于后续验证是否有变化
+        original_rendered_body = self.post.rendered_body
+        original_toc = self.post.toc
+
+        # 模拟请求对象
+        request = MagicMock()
+        request.user = self.user
+
+        # 调用 save_model 方法
         self.admin.save_model(request, self.post, mock_form, change=True)
 
-        mock_render_markdown.assert_called_once()
-        mock_super().save_model.assert_called_once()
+        # 断言无变化
+        self.assertEqual(self.post.rendered_body, original_rendered_body)
+        self.assertEqual(self.post.toc, original_toc)

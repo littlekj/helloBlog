@@ -2,7 +2,7 @@ from django.urls import path, include
 from blog import views
 from blog.feeds import LatestPostsFeed
 from django.contrib.sitemaps.views import sitemap
-from .sitemaps import PostSitemap, HomeSitemap, TagSitemap
+from blog.sitemaps import PostSitemap, HomeSitemap, TagSitemap
 
 app_name = 'blog'  # 定义 URL 命名空间
 

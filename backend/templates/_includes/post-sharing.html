@@ -12,11 +12,11 @@
     <div class="share-wrapper-icons">
         <span class="share-icons">
             <!-- 微信分享图标 -->
-            <a href="javascript:void(0);"
-               aria-label="微信"
-               data-bs-toggle="tooltip"
-               data-bs-placement="top"
+            <a aria-label="微信"
                data-bs-original-title="微信"
+               data-bs-placement="top"
+               data-bs-toggle="tooltip"
+               href="javascript:void(0);"
                onclick="generateWeChatQRCode(this, 'https://quillnk.com{{ request.get_full_path }}')"
             >
                 <i class="fa-brands fa-weixin"></i>
@@ -25,26 +25,26 @@
             <!-- 其他分享平台图标 -->
             {% share_detail post_pk=post.pk %}
             {% for share in share_platforms %}
-                <a href="{{ share.link }}"
-                   target="_blank"
-                   rel="noopener"
-                   aria-label="{{ share.type }}"
-                   data-bs-toggle="tooltip"
-                   data-bs-placement="top"
+                <a aria-label="{{ share.type }}"
                    data-bs-original-title="{{ share.type }}"
+                   data-bs-placement="top"
+                   data-bs-toggle="tooltip"
+                   href="{{ share.link }}"
+                   rel="noopener"
+                   target="_blank"
                 >
                     <i class="fa-fw {{ share.icon }}"></i>
                 </a>
             {% endfor %}
 
             <!-- 生成复制链接按钮 -->
-            <button id="copy-link"
-                    aria-label="Copy link"
+            <button aria-label="Copy link"
                     class="btn small"
-                    data-bs-toggle="tooltip"
-                    data-bs-placement="top"
                     data-bs-original-title="复制链接"
-                    >
+                    data-bs-placement="top"
+                    data-bs-toggle="tooltip"
+                    id="copy-link"
+            >
                 <i class="fa-fw fas fa-link pe-none fs-6"></i>
             </button>
         </span>
@@ -52,75 +52,98 @@
         <!-- 二维码容器 -->
         <div id="wechat-qrcode-container">
             <canvas id="wechat-qrcode" style="margin-bottom: -10px "></canvas>
-            <p class="text-muted mt-2" style="font-size: 0.75rem; text-align: center; margin: 1px !important;">微信扫码分享</p>
+            <p class="text-muted mt-2" style="font-size: 0.75rem; text-align: center; margin: 1px !important;">
+                微信扫码分享</p>
         </div>
     </div>
 </div>
-
-<!--模态框展示二维码-->
-<!--<div class="modal fade" id="wechatModal" tabindex="-1" aria-labelledby="wechatModalLabel" aria-hidden="true">-->
-<!--    <div class="modal-dialog modal-dialog-centered">-->
-<!--        <div class="modal-content text-center">-->
-<!--            <div class="modal-header">-->
-<!--                <h5 class="modal-title" id="wechatModalLabel">微信分享二维码</h5>-->
-<!--                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="关闭"></button>-->
-<!--            </div>-->
-<!--            <div class="modal-body">-->
-<!--                <canvas id="wechat-qrcode"></canvas>-->
-<!--                <p class="text-muted mt-2">扫描二维码分享到微信</p>-->
-<!--            </div>-->
-<!--        </div>-->
-<!--    </div>-->
-<!--</div>-->
 
 <!-- 分享按钮显示提示信息 -->
 <!--确保已引入 Tooltip 库，以便在复制链接按钮上显示提示信息。-->
 <script>
     document.addEventListener('DOMContentLoaded', function() {
-        // 获取所有 Tooltip 触发器元素
-        const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
-
-        // 初始化所有 Tooltip
-        tooltipTriggerList.forEach(function (tooltipTriggerEl) {
-            // 确保 data-bs-original-title 属性存在且有效
-            const title = tooltipTriggerEl.getAttribute('data-bs-original-title') || '默认提示';
-
-            new bootstrap.Tooltip(tooltipTriggerEl, {
-                title: title, // 使用 data-bs-original-title 的值作为初始提示信息
-                placement: tooltipTriggerEl.getAttribute('data-bs-placement') || 'top'
+        // 初始化所有Tooltip
+        const initTooltips = () => {
+            document.querySelectorAll('[data-bs-toggle="tooltip"]').forEach(el => {
+                new bootstrap.Tooltip(el, {
+                    title: el.getAttribute('data-bs-original-title') || '默认提示',
+                    placement: el.getAttribute('data-bs-placement') || 'top'
+                });
             });
-        });
+        };
+
+        // 复制文本到剪贴板
+        const copyToClipboard = async (text, button, tooltip) => {
+            try {
+                // 优先使用现代API
+                if (navigator.clipboard?.writeText) {
+                    await navigator.clipboard.writeText(text);
+                    return true;
+                }
+
+                // 回退方案
+                return fallbackCopy(text);
+            } catch (error) {
+                console.error('复制失败:', error);
+                return false;
+            }
+        };
+
+        // 传统复制方法
+        const fallbackCopy = (text) => {
+            try {
+                const textarea = document.createElement('textarea');
+                textarea.value = text;
+                textarea.style.position = 'fixed';
+                textarea.style.opacity = '0';
+                document.body.appendChild(textarea);
+                textarea.select();
+
+                const success = document.execCommand('copy');
+                document.body.removeChild(textarea);
+                return success;
+            } catch (error) {
+                console.error('传统复制方法失败:', error);
+                return false;
+            }
+        };
+
+        // 更新Tooltip显示状态
+        const updateTooltipStatus = (button, tooltip, success) => {
+            const originalTitle = button.getAttribute('data-bs-original-title');
+            const successMessage = success ? '复制成功!' : '复制失败，请手动复制';
+
+            button.setAttribute('data-bs-original-title', successMessage);
+            tooltip.update();
+            tooltip.show();
+
+            setTimeout(() => {
+                button.setAttribute('data-bs-original-title', originalTitle);
+                tooltip.update();
+                tooltip.hide();
+            }, 2000);
+        };
+
+        // 初始化页面
+        initTooltips();
 
         // 处理复制按钮
         const copyButton = document.getElementById('copy-link');
         if (copyButton) {
-            const currentUrl = window.location.href; // 获取当前页面 URL
-
-            // 初始化 Tooltip
-            const copyButtonTooltip = new bootstrap.Tooltip(copyButton, {
-                title: copyButton.getAttribute('data-bs-original-title') || '默认提示', // 使用 data-bs-original-title 的值作为初始提示信息
+            const currentUrl = window.location.href;
+            const copyTooltip = new bootstrap.Tooltip(copyButton, {
+                title: copyButton.getAttribute('data-bs-original-title') || '复制链接',
                 placement: 'top'
             });
 
-            copyButton.addEventListener('click', function() {
-                // 使用 Clipboard API 复制链接
-                navigator.clipboard.writeText(currentUrl).then(function() {
-                    // 更新提示信息为复制成功
-                    copyButton.setAttribute('data-bs-original-title', '链接复制成功!');
-                    copyButtonTooltip.update(); // 更新 Tooltip 内容
-                    copyButtonTooltip.show();
+            copyButton.addEventListener('click', async () => {
+                const success = await copyToClipboard(currentUrl, copyButton, copyTooltip);
+                updateTooltipStatus(copyButton, copyTooltip, success);
 
-                    // 自动隐藏提示
-                    setTimeout(() => {
-                        copyButtonTooltip.hide();
-                        // 恢复提示信息为原始内容
-                        copyButton.setAttribute('data-bs-original-title', '复制链接');
-                        copyButtonTooltip.update(); // 更新 Tooltip 内容
-                    }, 2000); // 2秒后恢复原始内容
-
-                }).catch(function(error) {
-                    console.error('Error copying text: ', error);
-                });
+                if (!success) {
+                    // 提供手动复制选项作为最后手段
+                    prompt('请手动复制链接', currentUrl);
+                }
             });
         }
     });
@@ -147,6 +170,7 @@
         border-radius: 5px;
         box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
     }
+
 </style>
 
 <script src="https://cdn.jsdelivr.net/npm/qrcode/build/qrcode.min.js"></script>
@@ -173,12 +197,15 @@
         // 显示二维码容器
         qrCodeContainer.style.setProperty('display', 'block', 'important');
 
-        // 使用 qrcode.js 生成二维码
-        QRCode.toCanvas(qrCodeCanvas, url, { width: 80 }, function (error) {
-            if (error) {
-                console.error('二维码生成失败:', error);
-                alert('二维码生成失败，请重试！');
-            }
+        // 使用 requestAnimationFrame 优化异步渲染
+        requestAnimationFrame(() => {
+            // 使用 qrcode.js 生成二维码
+            QRCode.toCanvas(qrCodeCanvas, url, { width: 80 }, function (error) {
+                if (error) {
+                    console.error('二维码生成失败:', error);
+                    alert('二维码生成失败，请重试！');
+                }
+            });
         });
 
         // 点击页面其他地方隐藏二维码
@@ -203,4 +230,5 @@
             document.removeEventListener('click', hideQRCode);
         });
     }
+
 </script>
