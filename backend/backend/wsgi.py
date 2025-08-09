@@ -16,9 +16,9 @@ from dotenv import load_dotenv
 # 加载 .env 文件中的环境变量
 load_dotenv()
 
+# 从环境变量中获取 Django 设置模块
+# settings_module = os.getenv('DJANGO_SETTINGS_MODULE', 'backend.settings')
 settings_module = os.getenv('DJANGO_SETTINGS_MODULE')
-
-# os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'backend.settings')
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', settings_module)
 
 application = get_wsgi_application()

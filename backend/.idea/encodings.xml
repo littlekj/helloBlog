@@ -1,8 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="Encoding">
+    <file url="file://$PROJECT_DIR$/.coverage" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/blog/forms.py" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/blog/templatetags/page_tags.py" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/blog/tests.py" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/../../timezone_manager.log" charset="GBK" />
     <file url="PROJECT" charset="GBK" />
   </component>

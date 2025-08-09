@@ -17,14 +17,11 @@
 <!-- 根据页面布局确定使用的 JS 文件 -->
 {% if meta.type == 'article' %}
     <!-- 引入 Prism.js 核心库 -->
-    <!--<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>-->
-    <!--<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/autoloader/prism-autoloader.min.js"></script>-->
     <!-- 引入行号插件的 JS -->
-    <!--<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/line-numbers/prism-line-numbers.min.js"></script>-->
+    <script defer src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
+    <script defer src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism-line-numbers.min.js"></script>
+    <script defer src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/autoloader/prism-autoloader.min.js"></script>
 
-    <script src="{% static 'assets/js/prism/prism.min.js' %}"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/autoloader/prism-autoloader.min.js"></script>
-    <script src="{% static 'assets/js/prism/prism-line-numbers.min.js' %}"></script>
     <!--动态添加 line-numbers 类-->
     <script>
         document.querySelectorAll('pre code').forEach((block) => {
@@ -47,14 +44,11 @@
         };
     </script>
     <!-- 异步加载 MathJax 脚本 -->
-<!--    <script async id="MathJax-script" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js"></script>-->
     <script async id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/3.2.2/es5/tex-mml-chtml.js"></script>
 
     <!--剪切板-->
     <script src="{% static 'assets/js/dist/clipboard.min.js' %}"></script>
-    <!--document.addEventListener('DOMContentLoaded', function() {-->
-    <!--    var clipboard = new ClipboardJS('.btn');-->
-    <!--});-->
+
 {% endif %}
 
 {% comment %}

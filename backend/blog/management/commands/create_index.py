@@ -2,6 +2,13 @@
 from django.core.management.base import BaseCommand
 from elasticsearch import Elasticsearch
 from django.conf import settings
+from dotenv import load_dotenv
+import os
+
+# 加载 .env 文件中的环境变量
+load_dotenv()
+
+HOST = os.getenv('HOST')
 
 
 class Command(BaseCommand):
@@ -10,7 +17,7 @@ class Command(BaseCommand):
     def handle(self, *args, **kwargs):
         # Initialize Elasticsearch client
 
-        es = Elasticsearch('http://elastic:elastic@101.34.211.137:9200')
+        es = Elasticsearch(f'http://elastic:elastic@{HOST}:9200')
 
         index_name = settings.HAYSTACK_CONNECTIONS['default']['INDEX_NAME']
 

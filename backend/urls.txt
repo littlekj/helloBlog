@@ -1,12 +1,12 @@
 https://quillnk.com
-https://quillnk.com/posts/common-basic-algorithms/
+https://quillnk.com/posts/common-algorithms-and-applications/
 https://quillnk.com/posts/fastapi-development-of-network-data-interface/
 https://quillnk.com/posts/production-deployment-of-django-project/
 https://quillnk.com/posts/mapreduce-framework-fundamentals/
 https://quillnk.com/posts/apache-hive-installation-configuration/
 https://quillnk.com/posts/apache-hive-architecture-fundamentals/
 https://quillnk.com/posts/celery-implements-asynchronous-and-scheduled-tasks/
-https://quillnk.com/posts/hdfs-cluster-deployment/
+https://quillnk.com/posts/hadoop-cluster-deployment/
 https://quillnk.com/posts/hadoop-cluster-architecture-description/
 https://quillnk.com/posts/hivesql-for-big-data-platform/
 https://quillnk.com/posts/advanced-features-of-mysql-database/

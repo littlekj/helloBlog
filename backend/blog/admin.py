@@ -41,7 +41,7 @@ class PostAdmin(admin.ModelAdmin):
         # 仅在 body 字段被修改或首次创建时渲染 Markdown
         if (change and 'body' in form.changed_data) or not change:
             # 渲染正文并生成目录
-            rendered_body, toc = render_markdown(obj.body)
+            rendered_body, toc = render_markdown(obj.body, obj.title)
             obj.rendered_body = rendered_body
             obj.toc = toc
             # 不需要显式调用 obj.save()，super().save_model() 会处理保存逻辑

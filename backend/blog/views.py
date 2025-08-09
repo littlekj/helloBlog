@@ -24,6 +24,7 @@ from django.db.models import Count
 from django.db.models.functions import Coalesce, ExtractYear, TruncYear
 from django.views.generic import TemplateView
 from django.db.models import Prefetch
+from blog.utils import update_obsidian_links
 
 from dotenv import load_dotenv
 
@@ -139,7 +140,7 @@ class PostDetailView(BreadcrumbMixin, DetailView):
 
         # 如果文章的正文或目录为空，则使用 Markdown 渲染器进行渲染
         if not post.rendered_body or not post.toc:
-            post.rendered_body, post.toc = render_markdown(post.body)
+            post.rendered_body, post.toc = render_markdown(post.body, title=post.title)
 
         # 将处理后的 post 对象传递给模板
         context['post'] = post
@@ -378,7 +379,6 @@ def search(request):
 
     try:
         # sqs = SearchQuerySet().filter(content=query).highlight()
-        # sqs = SearchQuerySet().filter(content__exact=query).highlight()  # content_exact 表示精确匹配，要求索引中的内容完全等于关键词，过于严格
         sqs = SearchQuerySet().filter(content=Exact(query)).highlight()  # 整个关键词作为单一的短语进行匹配，而不会分词
 
         # 使用 Django 的分页器创建分页对象，假设每页显示 10 条结果

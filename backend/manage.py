@@ -11,8 +11,8 @@ load_dotenv()
 
 def main():
     """Run administrative tasks."""
-    # os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'backend.settings')
-
+    # 从环境变量中获取 Django 设置模块
+    # settings_module = os.getenv('DJANGO_SETTINGS_MODULE', 'backend.settings')
     settings_module = os.getenv('DJANGO_SETTINGS_MODULE')
     os.environ.setdefault('DJANGO_SETTINGS_MODULE', settings_module)
     try:

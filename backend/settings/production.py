@@ -29,6 +29,7 @@ load_dotenv()
 
 # 从环境变量中获取配置
 SECRET_KEY = os.getenv('SECRET_KEY')
+HOST = os.getenv('HOST')
 DB_USER = os.getenv('DB_USER')
 DB_PASS = os.getenv('DB_PASS')
 
@@ -83,7 +84,7 @@ HAYSTACK_CONNECTIONS = {
     'default': {
         'ENGINE': 'haystack.backends.elasticsearch7_backend.Elasticsearch7SearchEngine',
         # 'ENGINE': 'blog.search_backends.CustomElasticsearch7SearchEngine',
-        'URL': 'http://101.34.211.137:9200/',  # Elasticsearch 地址
+        'URL': f'http://{HOST}:9200/',  # Elasticsearch 地址
         # 'INDEX_NAME': 'haystack',  # Elasticsearch 索引名称
         'INDEX_NAME': 'blog_index',
         'KWARGS': {
@@ -152,7 +153,7 @@ DATABASES = {
         # 数据库的名称
         'NAME': 'blog',
         # 数据库服务器的 IP 地址(如果是本机，可以配置成 localhost 或 127.0.0.1)
-        'HOST': '101.34.211.137',
+        'HOST': HOST,
         # 启动 MySQL 服务的端口号
         'PORT': 3306,
         # 数据库用户名和口令
