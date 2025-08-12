@@ -19,7 +19,8 @@ master=true
 processes=4
 
 # 指定 PID 文件的位置，便于进程管理
-pidfile=/run/uwsgi.pid
+#pidfile=/run/uwsgi.pid
+pidfile=/tmp/uwsgi.pid
 
 # 退出时自动清理 Unix 套接字和 PID 文件
 vacuum=true
@@ -28,7 +29,7 @@ vacuum=true
 max-requests=5000
 
 # 启用 thunder lock，优化多进程环境下的锁性能
-#thunder-lock = true
+thunder-lock = true
 
 # 启用线程支持，如果应用程序依赖线程则需要启用
 enable-threads = true
@@ -42,15 +43,15 @@ harakiri = 60        # 设置超时时间
 post-buffering = 4096  # 处理较大 POST 数据块
 
 # 使用非 root 用户运行 uWSGI，提高安全性
-#uid=www-data
-#gid=www-data
+uid=www-data
+gid=www-data
 
 # 设置 Python 虚拟环境的路径
-pythonhome=/root/.local/share/virtualenvs/backend-2ZtQ7vfC
+pythonhome=/usr/local/share/helloBlog/venv
 
 # 指定通信的地址和端口，格式为‘IP:端口’
 # 如果使用 Unix 套接字，格式为‘socket=/tmp/uwsgi.sock’
-socket=0.0.0.0:8000
+socket=127.0.0.1:8000
 
 # 将日志输出到指定文件
 logto=%(base)/logs/uwsgi/uwsgi.log

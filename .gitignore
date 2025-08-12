@@ -4,3 +4,4 @@ logs/nginx/*
 logs/uwsgi/*
 !logs/nginx/.gitkeep
 !logs/uwsgi/.gitkeep
+venv/*
